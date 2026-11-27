@@ -9,6 +9,33 @@ const MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","De
 const FIELDS=[["person","People"],["coll","Collection"],["event","Event"],["sphere","Sphere"],["kind","Kind"],["list","List"],["status","Status"],["star","Priority"],["carried","Migrated"],["month","Month"],["date","Logged"],["due","Due / day"],["source","Source"]];
 const SORTS=[["date","Due / day"],["logged","Logged"],["text","Title"],["star","Priority"],["status","Status"],["created","Added"]];
 const CAP=3;
+/* ---------- interface icons: one 16-pt line set (docs/DESIGN.md: no emoji in the interface) ---------- */
+const ICON={
+ today:'<rect x="2" y="3" width="12" height="11" rx="2"/><path d="M2 6.5h12M5 1.5v3M11 1.5v3"/><circle cx="8" cy="10.2" r="1.3" fill="currentColor" stroke="none"/>',
+ inbox:'<path d="M2 9.5 4 3h8l2 6.5V13H2z"/><path d="M2 9.5h3.5l1 1.5h3l1-1.5H14"/>',
+ review:'<circle cx="8" cy="8" r="6"/><path d="m5.5 8 1.8 1.8 3.5-3.5"/>',
+ tasks:'<path d="M7 4h6.5M7 8h6.5M7 12h6.5"/><path d="m2 4 1 1 1.7-1.9M2 8l1 1 1.7-1.9M2 12l1 1 1.7-1.9"/>',
+ next:'<path d="M3 8h9.5M9 4.5 12.5 8 9 11.5"/>',
+ waiting:'<circle cx="8" cy="8" r="6"/><path d="M8 4.6V8l2.3 1.5"/>',
+ someday:'<path d="M4.3 12a3 3 0 0 1 .3-6A4 4 0 0 1 12 6.4 2.8 2.8 0 0 1 11.8 12z"/>',
+ notes:'<path d="M4 2h5.5L13 5.5V14H4z"/><path d="M9.5 2v3.5H13M6.5 8.5h4M6.5 11h4"/>',
+ people:'<circle cx="8" cy="5.5" r="2.5"/><path d="M3 14a5 5 0 0 1 10 0"/>',
+ events:'<rect x="2" y="3" width="12" height="11" rx="2"/><path d="M2 6.5h12M5 1.5v3M11 1.5v3"/><path d="M5.5 9.5h2M5.5 11.5h5"/>',
+ colls:'<rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/>',
+ images:'<rect x="2" y="3" width="12" height="10" rx="2"/><circle cx="6" cy="7" r="1.3"/><path d="m2.5 12 3.5-3 2.5 2 2-1.5 3 2.5"/>',
+ view:'<path d="M4.5 2h7v12L8 11.2 4.5 14z"/>',
+ gear:'<circle cx="8" cy="8" r="2.2"/><path d="M8 1.8v1.7M8 12.5v1.7M1.8 8h1.7M12.5 8h1.7M3.6 3.6l1.2 1.2M11.2 11.2l1.2 1.2M3.6 12.4l1.2-1.2M11.2 4.8l1.2-1.2"/>',
+ sidebar:'<rect x="2" y="3" width="12" height="10" rx="2"/><path d="M6.2 3v10"/>',
+ chev:'<path d="m6 4 4 4-4 4"/>',
+ more:'<circle cx="3.5" cy="8" r="1.2" fill="currentColor" stroke="none"/><circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/><circle cx="12.5" cy="8" r="1.2" fill="currentColor" stroke="none"/>',
+ plus:'<path d="M8 3v10M3 8h10"/>',
+ check:'<path d="m3.5 8.5 3 3 6-7"/>',
+ menu:'<path d="M2.5 4h11M2.5 8h11M2.5 12h11"/>',
+ back:'<path d="M13 8H3M7.5 3.5 3 8l4.5 4.5"/>',
+ fwd:'<path d="M3 8h10M8.5 3.5 13 8l-4.5 4.5"/>'
+};
+function ic(n,c){return`<svg class="ic${c?" "+c:""}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[n]||""}</svg>`}
+function sphName(sp){return String(sp).replace(/^[\p{Extended_Pictographic}️‍\s]+/u,"")||String(sp)}
 /* ---------- state ---------- */
 const S={imgs:[],assets:null,reveal:{},relTab:"event",orgs:[],items:[],people:[],events:[],colls:[],props:[],views:[],ready:false,db:null,sample:null,mcp:null,dl:null,dict:null,
   view:"daily",ptabs:[],showTr:{},arg:"",date:today(),range:"day",expanded:{},moreOpen:{},detailMode:'auto',mopen:{},prioOpen:false,dgroup:null,filt:{},fq:{},modes:{},groups:{},sorts:{},tabs:{},base:{},fields:{chips:1,detail:1,due:1},
@@ -700,7 +727,7 @@ function pageDaily(){
   const props=S.props.filter(p=>p.status==="pending"&&p.date>=a&&p.date<=b);
   const trail=S.range==="day"?V().filter(i=>i.kind==="task"&&(i.history||[]).includes(d)&&tday(i)!==d):[];
   const title=S.range==="day"?dlabel(d):shortDate(a)+" – "+shortDate(b);
-  let h=`<div class="row"><div class="seg">${[["day","Day"],["week","Week"],["next","Next week"]].map(([k,l])=>`<button data-act="range" data-v="${k}" class="${S.range===k?"on":""}">${l}</button>`).join("")}</div>
+  let h=`<div class="row">${S.range==="day"?"":`<div class="seg">${[["week","This week"],["next","Next week"]].map(([k,l])=>`<button data-act="range" data-v="${k}" class="${S.range===k?"on":""}">${l}</button>`).join("")}</div>`}
    <button data-act="day" data-n="-1">‹</button>${S.range==="day"?"":`<b style="font-size:1.05rem">${esc(title)}</b>`}<button data-act="day" data-n="1">›</button><input type="date" value="${d}" data-act="pickday"><button data-act="day" data-n="0">Today</button>${d===today()&&S.range!=="next"?`<span class="chip dsk" style="background:var(--accbg);color:var(--acc)">Today</span>`:""}
    <span class="mute">Week ${weekNo(d)} · <a href="#month:${monthOf(d)}">${monthLog(d)}</a></span><span class="sp"></span>${S.range==="day"?prioChip(d):""}</div>
    <div class="row" style="margin:8px 0"><button class="pri" data-act="setup" data-d="${d}">${V().some(i=>i.date===d)?"Review "+(d===today()?"today":shortDate(d)):"Set up "+(d===today()?"today":shortDate(d))}</button><button data-act="backfill">Add or import info</button>${S.busy?`<span class="mute">⏳ ${esc(S.busy)}</span>`:""}</div>`;
@@ -2073,38 +2100,68 @@ function pageData(){
 const TITLES={img:"Image",images:"Images",daily:"Daily log",month:"Monthly log",year:"Yearly log",people:"People",person:"Person",events:"Events",event:"Event",colls:"Collections",coll:"Collection",review:"Inbox",weekly:"Weekly review",data:"Data",search:"Search",report:"Task report",obj:"Item",archived:"Archived",cleanup:"Review people",org:"Organization"};
 function pageTitle(){
   if(S.view==="list")return(LISTS[S.arg]||{}).title||"Tasks";
-  if(S.view==="person")return pname(S.arg);if(S.view==="event")return"📅 "+ename(S.arg);if(S.view==="coll")return"📁 "+cname(S.arg);
+  if(S.view==="person")return pname(S.arg);if(S.view==="event")return ename(S.arg);if(S.view==="coll")return cname(S.arg);
   if(S.view==="daily")return longDate(S.date);return TITLES[S.view]||"";
 }
-function gh(key,label,extra){const c=S.collapsed[key];return`<div class="gh" data-act="coll" data-k="${key}"><span>${c?"▸":"▾"}</span>${label}${extra||""}</div>`}
+function gh(key,label,extra){const c=S.collapsed[key];return`<div class="gh${c?" shut":""}" data-act="coll" data-k="${key}" role="button" aria-expanded="${!c}"><span class="ghl">${label}</span>${ic("chev","ghc")}${extra||""}</div>`}
 function paintSide(){
+  /* Four fixed sections (docs/DESIGN.md): Today, Lists, Library, Spheres. Utilities sit in the Settings menu. */
   const el=document.getElementById("side");if(document.activeElement&&document.activeElement.id==="sq")return;
-  const T=V(),open=T.filter(isOpen),td=today(),ws=weekStart(td);
-  const cnt={tasks:open.length,today:open.filter(i=>tday(i)===td).length,week:open.filter(i=>inRange(i,ws,addDays(ws,6))).length,next:open.filter(i=>inRange(i,addDays(ws,7),addDays(ws,13))).length,prio:open.filter(i=>i.star).length,overdue:open.filter(overdue).length};
-  const pend=inboxNew().length;
+  const T=V(),open=T.filter(isOpen),td=today(),pend=inboxNew().length;
   const on=(v,a)=>S.view===v&&(a==null||S.arg===a)?"on":"";
-  const lk=(h,e,l,n,cls,small)=>`<a href="${h}" class="${cls}"><span class="em">${e}</span>${l}${small?` <small>${small}</small>`:""}${n!=null&&n!==0?`<span class="n">${n}</span>`:""}</a>`;
-  let h=`<div class="brand"><svg class="tlogo" viewBox="0 0 32 32" width="22" height="22" aria-hidden="true"><rect x="3" y="5" width="26" height="22" rx="4" fill="#7a4a1e"/><rect x="6.5" y="8.5" width="19" height="15" rx="1.5" fill="#e9c46a"/><path d="M9.5 13h13M9.5 16.5h9M9.5 20h11" stroke="#7a4a1e" stroke-width="1.6" stroke-linecap="round"/></svg><span class="tword">Tabula</span><button class="sbtn" data-act="burger" title="Collapse sidebar">«</button></div><input id="sq" type="search" placeholder="Search everything" value="${esc(S.q)}"><div class="nav">`;
-  h+=lk("#day:"+td,"📓","Daily log",null,S.view==="daily"?"on":"")+lk("#review","📥","Inbox",pend,on("review"))+lk("#month:"+monthOf(td),"🗓️","Monthly",null,on("month"))+lk("#year:"+td.slice(0,4),"📅","Yearly",null,on("year"))+lk("#weekly","🧭","Weekly review",wkDue()?"due":null,on("weekly"));
-  h+=lk("#list:today","☑️","Tasks",cnt.tasks,S.view==="list"&&!["notes","lnext","lwait","lsome"].includes(S.arg)?"on":"")+lk("#list:lnext","▶️","Next actions",open.filter(i=>listOf(i)==="next").length,on("list","lnext"))+lk("#list:lwait","⏳","Waiting for",open.filter(i=>listOf(i)==="waiting").length,on("list","lwait"))+lk("#list:lsome","💭","Someday/Maybe",T.filter(i=>i.kind==="task"&&(i.status||"open")==="open"&&i.list==="someday").length,on("list","lsome"))+lk("#list:notes","📝","Notes",T.filter(i=>i.kind==="note").length,on("list","notes"));
-  h+=gh("views","Saved views",`<span class="pl" data-act="saveview" title="Save current view">+</span>`);
-  if(!S.collapsed.views)h+=S.views.length?S.views.map(v=>`<a href="#view:${esc(v.id)}" class="${on("view",v.id)}"><span class="em">🔖</span>${esc(v.name)}<span class="n" data-act="delview" data-id="${esc(v.id)}" title="Delete">✕</span></a>`).join(""):`<div class="sidehint">Set filters on any list, then save here.</div>`;
-  h+=gh("colls","Collections",`<span class="pl" data-act="newent" data-k="coll">+</span>`);
-  if(!S.collapsed.colls){h+=lk("#colls","🗂️","All collections",null,on("colls"))+S.colls.slice().sort((a,b)=>cntFor("coll",b.id)-cntFor("coll",a.id)).slice(0,10).map(c=>lk("#coll:"+c.id,c.dynamic?"✨":"📁",esc(c.name),cntFor("coll",c.id),on("coll",c.id))).join("")}
-  h+=gh("people","People",`<span class="pl" data-act="newent" data-k="person">+</span>`);
-  if(!S.collapsed.people){h+=lk("#people","👥","All people",S.people.length,on("people"))+S.people.slice().sort((a,b)=>cntFor("person",b.id)-cntFor("person",a.id)).slice(0,6).map(c=>lk("#person:"+c.id,avatarP(c.id,"sm"),esc(c.name),cntFor("person",c.id),on("person",c.id))).join("")}
-  h+=gh("events","Events",`<span class="pl" data-act="newent" data-k="event">+</span>`);
-  if(!S.collapsed.events){const up=dedupeShow(V().filter(i=>i.kind==="event"&&i.date>=td)).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,5);h+=lk("#events","🗓️","All events",V().filter(i=>i.kind==="event").length,on("events"))+up.map(c=>lk("#event:"+c.id,"📅",esc(cleanTitle(c).t.slice(0,22)),null,on("event",c.id),shortDate(c.date).replace(" ",""))).join("")}
-    h+=`<div style="height:12px"></div>`+lk("#images","🖼","Images",S.imgs.length||null,on("images"))+lk("#archived","🗄","Archived",archCount()||null,on("archived"))+lk("#report","📊","Task report",null,on("report"))+lk("#data","⚙️","Data & export",null,on("data"))+`</div>`;
+  const sphF=(S.filt["list-tasks"]||{}).sphere||"";
+  const lk=(h,icon,l,n,cls,attrs)=>`<a href="${h}" class="${cls}"${attrs||""}>${icon}<span class="lbl">${l}</span>${n!=null&&n!==0?`<span class="n">${n}</span>`:""}</a>`;
+  let h=`<div class="brand"><svg class="tlogo" viewBox="0 0 32 32" width="22" height="22" aria-hidden="true"><rect x="3" y="5" width="26" height="22" rx="4" fill="#7a4a1e"/><rect x="6.5" y="8.5" width="19" height="15" rx="1.5" fill="#e9c46a"/><path d="M9.5 13h13M9.5 16.5h9M9.5 20h11" stroke="#7a4a1e" stroke-width="1.6" stroke-linecap="round"/></svg><span class="tword">Tabula</span><button class="sbtn" data-act="burger" title="Hide sidebar" aria-label="Hide sidebar">${ic("sidebar")}</button></div><input id="sq" type="search" placeholder="Search" aria-label="Search everything" value="${esc(S.q)}"><div class="nav">`;
+  h+=lk("#day:"+td,ic("today"),"Today",open.filter(i=>tday(i)===td).length,["daily","month","year"].includes(S.view)?"on":"")
+    +lk("#review",ic("inbox"),"Inbox",pend,on("review"))
+    +lk("#weekly",ic("review"),"Review",wkDue()?"due":null,on("weekly"));
+  h+=gh("lists","Lists",`<span class="pl" data-act="saveview" title="Save the current view as a list" aria-label="Save the current view as a list">${ic("plus")}</span>`);
+  if(!S.collapsed.lists){
+    h+=lk("#list:today",ic("tasks"),"Tasks",open.length,S.view==="list"&&!["notes","lnext","lwait","lsome"].includes(S.arg)&&!(S.arg==="tasks"&&sphF)?"on":"")
+      +lk("#list:lnext",ic("next"),"Next actions",open.filter(i=>listOf(i)==="next").length,on("list","lnext"))
+      +lk("#list:lwait",ic("waiting"),"Waiting for",open.filter(i=>listOf(i)==="waiting").length,on("list","lwait"))
+      +lk("#list:lsome",ic("someday"),"Someday",T.filter(i=>i.kind==="task"&&(i.status||"open")==="open"&&i.list==="someday").length,on("list","lsome"))
+      +S.views.map(v=>`<a href="#view:${esc(v.id)}" class="${on("view",v.id)}">${ic("view")}<span class="lbl">${esc(v.name)}</span><span class="n x" data-act="delview" data-id="${esc(v.id)}" title="Remove this list" aria-label="Remove this list">×</span></a>`).join("");
+  }
+  h+=gh("library","Library");
+  if(!S.collapsed.library){
+    h+=lk("#list:notes",ic("notes"),"Notes",T.filter(i=>i.kind==="note").length,on("list","notes"))
+      +lk("#people",ic("people"),"People",S.people.length,S.view==="people"||S.view==="person"?"on":"")
+      +lk("#events",ic("events"),"Events",T.filter(i=>i.kind==="event").length,S.view==="events"||S.view==="event"?"on":"")
+      +lk("#colls",ic("colls"),"Collections",S.colls.length,S.view==="colls"||S.view==="coll"?"on":"")
+      +lk("#images",ic("images"),"Images",S.imgs.length||null,on("images"));
+  }
+  h+=gh("spheres","Spheres");
+  if(!S.collapsed.spheres){
+    h+=SPHERES.map(sp=>lk("#list:tasks",`<i class="dot" style="background:${tintFor("sphere:"+sp)}"></i>`,esc(sphName(sp)),open.filter(i=>i.kind==="task"&&(i.sphere||DEFAULT_SPHERE)===sp).length,S.view==="list"&&S.arg==="tasks"&&sphF===sp?"on":"",` data-act="sphere" data-sp="${esc(sp)}"`)).join("");
+  }
+  h+=`</div><div class="sfoot"><button class="sfb" data-act="smenu" aria-haspopup="menu">${ic("gear")}<span>Settings</span></button><div id="smenu" class="menu" role="menu">
+    <button data-act="theme" role="menuitem">Appearance…</button>
+    <a href="#data" role="menuitem">Data &amp; export</a>
+    <a href="#archived" role="menuitem">Archived${archCount()?` <span class="n">${archCount()}</span>`:""}</a>
+    <a href="#report" role="menuitem">Task report</a></div></div>`;
   el.innerHTML=h;
 }
 /* row density is remembered per list (src/appearance.ts) */
 function densKey(){return S.view==="list"||S.view==="view"?"list:"+S.arg:S.view}
 function dens(){const A=window.tabulaAppearance;return A?A.density(densKey()):"comfy"}
+function calSeg(){
+  if(!["daily","month","year"].includes(S.view))return"";
+  const cur=S.view==="month"?"month":S.view==="year"?"year":(S.range==="day"?"day":"week");
+  return`<span class="seg calseg" role="radiogroup" aria-label="Calendar">${[["day","Day"],["week","Week"],["month","Month"],["year","Year"]].map(([v,l])=>`<button data-act="cal" data-v="${v}" role="radio" aria-checked="${cur===v}" class="${cur===v?"on":""}">${l}</button>`).join("")}</span>`;
+}
+function mi(act,label,checked,extra){return`<button data-act="${act}"${extra||""} role="${checked==null?"menuitem":"menuitemcheckbox"}"${checked==null?"":` aria-checked="${!!checked}"`}>${ic("check","mic")}<span>${label}</span></button>`}
 function paintTop0(){
+  /* Toolbar order (docs/DESIGN.md): back/forward, title, calendar range, density, More, New. */
   {const c=document.getElementById("content");if(c){c.dataset.w=S.pw||"m";c.dataset.density=dens()}}
-  document.getElementById("top").innerHTML=`<button id="sbx" data-act="burger" title="Show sidebar" aria-label="Show sidebar">»</button><span class="hnav dsk"><button data-act="back" title="Back" aria-label="Back"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 10H4M9 5l-5 5 5 5"/></svg></button><button data-act="fwd" title="Forward" aria-label="Forward"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10h12M11 5l5 5-5 5"/></svg></button></span><h1>${esc(pageTitle())}</h1><button id="kimgt" class="${S.kimgOff?"":"on"}" data-act="kimgtog" title="${S.kimgOff?"Show":"Hide"} key-image thumbnails in lists" aria-label="Toggle key-image thumbnails">🖼</button>
-   <span class="seg dens dsk" role="radiogroup" aria-label="Row density"><button data-act="density" data-v="comfy" role="radio" aria-checked="${dens()!=="compact"}" class="${dens()!=="compact"?"on":""}" title="Comfortable rows" aria-label="Comfortable rows"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h11"/></svg></button><button data-act="density" data-v="compact" role="radio" aria-checked="${dens()==="compact"}" class="${dens()==="compact"?"on":""}" title="Compact rows" aria-label="Compact rows"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2.5 3h11M2.5 6h11M2.5 9h11M2.5 12h11"/></svg></button></span><span class="pwb dsk" title="Page width">${[["n","▯","Narrow"],["m","▢","Medium"],["w","▭","Wide"]].map(([v,g,t])=>`<button data-act="pw" data-v="${v}" title="${t}" class="${S.pw===v?"on":""}">${g}</button>`).join("")}</span><button class="dsk" data-act="detmode" title="Show or hide notes and details in every row">${S.detailMode==="none"?"Expand all":"Collapse all"}</button><button class="pri" data-act="newitem">${newSpec().label}</button><button class="dsk" data-act="exportmd">Export</button><button class="dsk mdmode ${S.mdMode==="markdown"?"on":""}" data-act="mdmode" title="${S.mdMode==="markdown"?"Showing raw Markdown everywhere. Click to show formatted text.":"Showing formatted text. Click to see and edit the raw Markdown everywhere."}">M↓</button><button class="dsk tbi" data-act="theme" title="Appearance" aria-label="Appearance"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="8" cy="8" r="5.8"/><path d="M8 2.2a5.8 5.8 0 0 0 0 11.6z" fill="currentColor" stroke="none"/></svg></button><button class="mob nv" data-act="mmore" title="More" aria-label="More">⋯</button><div id="mmenu"><button data-act="detmode">${S.detailMode==="none"?"Expand all rows":"Collapse all rows"}</button><button data-act="exportmd">Export</button><button data-act="mdmode">M↓ ${S.mdMode==="markdown"?"Show formatted text":"Show raw Markdown"}</button><button data-act="theme">Appearance…</button><button data-act="density" data-v="toggle">${dens()==="compact"?"Comfortable rows":"Compact rows"}</button><button data-act="back">‹ Back</button></div>`;
+  const pw=S.pw||"m",dc=dens()==="compact";
+  document.getElementById("top").innerHTML=`<button id="sbx" data-act="burger" title="Show sidebar" aria-label="Show sidebar">${ic("sidebar")}</button><span class="hnav dsk"><button data-act="back" title="Back" aria-label="Back">${ic("back")}</button><button data-act="fwd" title="Forward" aria-label="Forward">${ic("fwd")}</button></span><h1>${esc(pageTitle())}</h1>${calSeg()}<span class="seg dens dsk" role="radiogroup" aria-label="Row density"><button data-act="density" data-v="comfy" role="radio" aria-checked="${!dc}" class="${dc?"":"on"}" title="Comfortable rows" aria-label="Comfortable rows"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h11"/></svg></button><button data-act="density" data-v="compact" role="radio" aria-checked="${dc}" class="${dc?"on":""}" title="Compact rows" aria-label="Compact rows"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2.5 3h11M2.5 6h11M2.5 9h11M2.5 12h11"/></svg></button></span><button class="tbi" data-act="mmore" title="More" aria-label="More" aria-haspopup="menu">${ic("more")}</button><button class="pri" data-act="newitem">${newSpec().label}</button><div id="mmenu" class="menu" role="menu">`
+    +mi("kimgtog","Show key images",!S.kimgOff)
+    +mi("detmode","Show details in every row",S.detailMode!=="none")
+    +mi("mdmode","Show raw Markdown",S.mdMode==="markdown")
+    +`<hr class="dsk">`+[["n","Narrow page"],["m","Medium page"],["w","Wide page"]].map(([v,l])=>mi("pw",l,pw===v,` data-v="${v}" class="dsk"`)).join("")
+    +`<hr class="mob">`+mi("density","Compact rows",dc,` data-v="toggle" class="mob"`)
+    +`<hr>`+mi("exportmd","Export…")+`</div>`;
   paintBnav();
 }
 function route(){
@@ -2381,6 +2438,11 @@ document.addEventListener("click",async e=>{
     case"addin":S.addIn=S.addIn===el.dataset.k?null:el.dataset.k;paintContent();break;
     case"newitem":newSpec().go();break;
     case"theme":{const A=window.tabulaAppearance;if(A)A.open();break}
+    case"cal":{const v=el.dataset.v,td=today(),base=S.view==="daily"?S.date:S.view==="month"?(S.arg||monthOf(td))+"-01":S.view==="year"?(S.arg||td.slice(0,4))+"-01-01":td;
+      if(v==="day"||v==="week"){S.range=v;if(S.view==="daily"){paintContent();paintTop()}else location.hash="#day:"+(base.slice(0,S.view==="month"?7:4)===td.slice(0,S.view==="month"?7:4)?td:base)}
+      else if(v==="month")location.hash="#month:"+monthOf(base);else location.hash="#year:"+base.slice(0,4);break}
+    case"sphere":{e.preventDefault();const k="list-tasks",cur=(S.filt[k]||{}).sphere,sp=el.dataset.sp;S.filt[k]={...(S.filt[k]||{}),sphere:cur===sp&&S.view==="list"&&S.arg==="tasks"?"":sp};S.tabs[k]=S.tabs[k]||"Open";if(location.hash==="#list:tasks")route();else location.hash="#list:tasks";break}
+    case"smenu":{const m=document.getElementById("smenu");if(m)m.classList.toggle("open");break}
     case"density":{const A=window.tabulaAppearance;if(A){const k=densKey(),v=el.dataset.v==="toggle"?(dens()==="compact"?"comfy":"compact"):el.dataset.v;A.setDensity(k,v)}paintTop();break}
     case"back":history.back();break;case"fwd":history.forward();break;
     case"burger":if(window.innerWidth<=860)document.getElementById("side").classList.toggle("open");else{document.body.classList.toggle("sbc");try{localStorage.setItem("bj-sbc",document.body.classList.contains("sbc")?"1":"")}catch(x){}}break;
@@ -3402,16 +3464,18 @@ document.addEventListener("toggle",e=>{if(e.target&&e.target.classList&&e.target
 
 /* ---------- phone helpers ---------- */
 function paintBnav(){
+  /* Phone tab bar (docs/DESIGN.md): Today, Tasks, New, Inbox, More. */
   const n=document.getElementById("bnav");if(!n)return;
   const pend=(S.props||[]).filter(p=>p.status==="pending").length;
-  const v=S.view,on=k=>k===v?"on":"";
-  const tabs=[["day:"+today(),"📓","Today",v==="daily"&&S.date===today()],["list:tasks","☑️","Tasks",v==="list"&&S.arg==="tasks"],["cap","＋","Capture",false],["review","📥","Inbox",v==="review",pend],["month","🗓️","Month",v==="month"]];
-  n.innerHTML=tabs.map(([h,i,l,a,c])=>h==="cap"?`<a href="#" class="capb" data-act="capture"><span class="i">${i}</span>${l}</a>`:`<a href="#${h}" class="${a?"on":""}"><span class="i">${i}</span>${c?`<span class="n">${c>99?"99+":c}</span>`:""}${l}</a>`).join("")+`<a href="#" data-mside="1"><span class="i">☰</span>More</a>`;
+  const v=S.view;
+  const tabs=[["day:"+today(),"today","Today",["daily","month","year"].includes(v)],["list:tasks","tasks","Tasks",v==="list"&&S.arg==="tasks"],["cap","plus","New",false],["review","inbox","Inbox",v==="review",pend]];
+  n.innerHTML=tabs.map(([h,i,l,a,c])=>h==="cap"?`<a href="#" class="capb" data-act="capture"><span class="i">${ic(i)}</span>${l}</a>`:`<a href="#${h}" class="${a?"on":""}"><span class="i">${ic(i)}</span>${c?`<span class="n">${c>99?"99+":c}</span>`:""}${l}</a>`).join("")+`<a href="#" data-mside="1"><span class="i">${ic("menu")}</span>More</a>`;
 }
 document.addEventListener("click",e=>{
   const m=document.getElementById("mmenu");
   const t=e.target.closest("[data-act=mmore],[data-act=mctl],[data-mside]");
-  if(t&&t.dataset.act==="mmore"){e.preventDefault();e.stopPropagation();m&&m.classList.toggle("open");return}
+  if(t&&t.dataset.act==="mmore"){e.preventDefault();e.stopPropagation();if(m&&m.classList.contains("open"))m.classList.remove("open");else{paintTop0();const m2=document.getElementById("mmenu");if(m2)m2.classList.add("open")}return}
+  {const sm=document.getElementById("smenu");if(sm&&sm.classList.contains("open")&&!e.target.closest("[data-act=smenu]"))setTimeout(()=>sm.classList.remove("open"),0)}
   if(m&&m.classList.contains("open")&&!e.target.closest("[data-act=mmore]"))setTimeout(()=>m.classList.remove("open"),0);
   if(t&&t.dataset.act==="mctl"){e.preventDefault();e.stopPropagation();S.mctl=!S.mctl;paintContent();return}
   if(t&&t.dataset.mside){e.preventDefault();e.stopPropagation();document.getElementById("side").classList.toggle("open");return}
