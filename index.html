@@ -649,7 +649,7 @@ dialog.sheet::backdrop{background:var(--scrim)}
  .calseg{order:9;flex:1 1 100%;display:flex}.calseg button{flex:1}
 }
 /* sign-in screens */
-body.gate #side,body.gate #rs,body.gate #top,body.gate #tabbar,body.gate #bnav{display:none!important}
+body.gate #side,body.gate #rs,body.gate #top,body.gate #tabbar,body.gate #bnav,body.gate #insp{display:none!important}
 body.gate #content{max-width:none}
 .auth{max-width:380px;margin:min(12vh,96px) auto 48px;display:flex;flex-direction:column;gap:var(--s4)}
 .auth-brand{display:flex;align-items:center;gap:var(--s2);font:600 18px var(--font-title);letter-spacing:.02em}
@@ -669,6 +669,84 @@ body.gate #content{max-width:none}
 .auth-alt .lnk{padding:0}
 .acct-out{display:flex;gap:var(--s2);flex-wrap:wrap}
 .acct-who b{color:var(--ink);font-weight:600}
+/* side panel: tasks, properties beside a full page, editing a person or collection */
+.tbi{width:30px;height:30px;padding:0;display:inline-grid;place-items:center;background:none;box-shadow:none;color:var(--ink2)}
+.tbi:hover{background:var(--fill2);color:var(--ink)}
+.tbi .ic{width:17px;height:17px}
+#insp{flex:none;width:min(400px,38vw);height:100vh;position:sticky;top:0;overflow-y:auto;background:var(--surface);border-left:1px solid var(--sep);padding-bottom:32px}
+#insp[hidden]{display:none}
+.insp-h{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:2px;padding:10px 10px 10px 16px;background:var(--surface);border-bottom:1px solid var(--sep)}
+.insp-k{display:flex;align-items:center;gap:6px;font-size:var(--t-small);font-weight:600;color:var(--ink2)}
+.insp-k .ic{color:var(--accent)}
+.insp-b{padding:16px}
+#insp .exp{margin:0;padding:0;border:0;box-shadow:none;border-radius:0;background:none}
+#insp .exp .xg{grid-template-columns:84px minmax(0,1fr)}
+#insp .exp .xkind{margin-top:8px}
+#insp .exp.in-panel .xkind{margin-top:0}
+#insp .exp.in-panel .xs:first-of-type{border-top:0;margin-top:8px}
+.pform>h3{margin:0 0 10px;font-size:var(--t-head)}
+.pform .f{grid-template-columns:96px minmax(0,1fr)}
+.it.sel{background:var(--accent-bg);border-radius:var(--r2);border-bottom-color:transparent}
+.mwrap{position:relative;display:inline-flex}
+.imenu{position:absolute;right:0;top:calc(100% + 4px);min-width:210px}
+.menu>button kbd{margin-left:auto;font:11px var(--font-ui);color:var(--ink3)}
+.menu>button:hover kbd{color:inherit}
+.menu>button.red{color:var(--red)}
+.menu>button.red:hover{background:var(--red);color:var(--on-accent)}
+/* titles are wrapping text areas everywhere */
+.exp .xtitle{display:block;width:100%;resize:none;overflow:hidden;border:0;border-radius:0;padding:2px 0;background:transparent;box-shadow:none;font:600 var(--t-head)/1.3 var(--font-title)}
+.exp .xtitle:focus{box-shadow:none;border:0}
+/* full page: a document */
+.doc{max-width:720px;margin:4px auto 0}
+.doc-top{display:flex;align-items:center;gap:4px;margin-bottom:10px}
+.doc-kind{display:flex;align-items:center;gap:6px;font-size:var(--t-small);font-weight:600;color:var(--ink2)}
+.doc-kind .ic{color:var(--accent)}
+.doc-kind a{color:inherit;font-weight:500}
+.doc-kind a:hover{color:var(--accent)}
+.tbtn{background:none;box-shadow:none;color:var(--ink2);font-weight:500;padding:4px 10px}
+.tbtn.on{background:var(--fill);color:var(--ink)}
+.doc .doc-exp{border:0;box-shadow:none;background:none;padding:0;margin:0;border-radius:0}
+.doc-h{display:flex;gap:12px;align-items:flex-start}
+.doc .doc-t{font:700 30px/1.2 var(--font-title);letter-spacing:-.015em}
+.doc-chk{flex:none;width:24px;height:24px;border-radius:50%;border:1.8px solid var(--ink3);background:none;box-shadow:none;padding:0;margin-top:7px;display:grid;place-items:center;color:var(--on-accent)}
+.doc-chk:hover{border-color:var(--accent);background:none}
+.doc-chk.done{background:var(--accent);border-color:var(--accent)}
+.doc-chk.dropped{background:var(--ink3);border-color:var(--ink3)}
+.toks{display:flex;flex-wrap:wrap;align-items:center;gap:2px;margin:12px 0 20px;padding-bottom:16px;border-bottom:1px solid var(--sep);font-size:var(--t-small);color:var(--ink2)}
+.tok{display:inline-flex;align-items:center;gap:5px;padding:2px 7px;border-radius:var(--r1);background:none;box-shadow:none;color:var(--ink2);font-weight:400;text-decoration:none;line-height:1.5}
+.tok:hover{background:var(--fill2);color:var(--ink)}
+.tok .dot{width:8px;height:8px;border-radius:50%;flex:none}
+.tok .av{margin-right:0}
+.tok.star{color:var(--star)}
+.tsep{color:var(--ink3)}
+.doc .nedit{border:0;background:none;border-radius:0}
+/* full page: the formatting bar floats at the bottom while you write, and takes no space otherwise */
+.doc .nedit .tb{display:none;position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:30;flex-wrap:nowrap;gap:2px;padding:5px;background:var(--surface);border:0;border-radius:var(--r3);box-shadow:var(--sh2);max-width:min(640px,94vw);overflow-x:auto}
+.doc .nedit:focus-within .tb{display:flex}
+.doc .nedit .tb button{white-space:nowrap}
+.doc .nedit .tb>.mute,#insp .nedit .tb>.mute{display:none}
+.doc .nedit textarea,.doc .nedit .mdp{padding:0;border:0;min-height:120px}
+.doc .nedit textarea:focus{box-shadow:none}
+.doc .khero{width:100%;margin:0 0 18px}
+.doc .khero img{width:100%;max-height:340px}
+.doc-imgs{margin-top:24px}
+.doc-imgs>label{display:block;font-size:var(--t-small);font-weight:600;color:var(--ink2);margin-bottom:6px}
+.doc .kdz,#insp .kdz{border-width:1px;padding:8px}
+.doc .kdz .dsm,#insp .kdz .dsm{display:none}
+/* while the side panel is open, two-column page layouts stack */
+body.insp-on .cols2,body.insp-on .dpair{grid-template-columns:minmax(0,1fr)}
+.doc .xmeet{margin-top:24px}
+.doc-linked{margin-top:44px}
+.doc-linked h2{display:flex;align-items:baseline;gap:8px;margin:0 0 6px;font-size:var(--t-body);font-weight:600}
+.doc-linked h2 .c{color:var(--ink3);font-weight:400}
+.doc-linked h2 .lnk{margin-left:auto;font-size:var(--t-small);font-weight:500}
+/* phone and narrow windows: the side panel is a sheet */
+@media (max-width:860px){
+ #insp{position:fixed;left:0;right:0;bottom:0;top:auto;width:100%;height:auto;max-height:88vh;z-index:56;border:0;border-radius:var(--r4) var(--r4) 0 0;box-shadow:var(--sh2);padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+ .insp-h{border-radius:var(--r4) var(--r4) 0 0}
+ body.insp-on::after{content:"";position:fixed;inset:0;background:var(--scrim);z-index:55}
+ .doc .doc-t{font-size:24px}
+}
 /* ---------- phone layout ---------- */
 .mob,#bnav{display:none}
 @media (max-width:700px){
@@ -753,6 +831,7 @@ body.gate #content{max-width:none}
 <div id="shell">
  <aside id="side"></aside>
  <div id="rs" title="Drag to resize"></div><div id="main"><div id="tabbar"></div><header id="top"></header><div id="content"><p class="mute">Loading journal…</p></div></div>
+ <aside id="insp" hidden aria-label="Details"></aside>
 </div>
 <nav id="bnav"></nav>
 <div id="modal"><div class="box" id="mbox"></div></div>

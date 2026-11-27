@@ -32,6 +32,8 @@ const ICON={
  check:'<path d="m3.5 8.5 3 3 6-7"/>',
  menu:'<path d="M2.5 4h11M2.5 8h11M2.5 12h11"/>',
  back:'<path d="M13 8H3M7.5 3.5 3 8l4.5 4.5"/>',
+ close:'<path d="M4 4l8 8M12 4l-8 8"/>',
+ expand:'<path d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/>',
  fwd:'<path d="M3 8h10M8.5 3.5 13 8l-4.5 4.5"/>'
 };
 function ic(n,c){return`<svg class="ic${c?" "+c:""}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[n]||""}</svg>`}
@@ -267,7 +269,8 @@ function duePill(it){
   return`<span class="pill ${late?"late":""}" data-go="day:${esc(d)}">${it.monthly?"Month of "+MON[pd(d).getMonth()]:esc(rel(d))}</span>`;
 }
 function nextMon(){const d=pd(today());let n=(8-d.getDay())%7;if(n===0)n=7;return addDays(today(),n)}
-function expHtml(it){
+function expHtml(it,o){
+  o=o||{};
   const k=it.kind||"task",st=it.status||"open",id=esc(it.id);
   const seg=(f,opts,cur)=>`<span class="qb">${opts.map(([v,l])=>`<button data-act="setf" data-id="${id}" data-f="${f}" data-v="${v}" class="${cur===v?"on":""}">${l}</button>`).join("")}</span>`;
   const chs=(arr,fn,ent)=>(arr||[]).map(x=>`<span class="ch" data-go="${ent==="person"?"person:"+esc(x):ent==="event"?"event:"+esc(x):ent==="rel"?"item:"+esc(x):"coll:"+esc(x)}" style="cursor:pointer">${ent==="person"?avatarP(x):""}${esc(fn(x))}<b data-act="rment" data-id="${id}" data-ent="${ent}" data-eid="${esc(x)}">×</b></span>`).join("");
@@ -284,11 +287,12 @@ function expHtml(it){
   const mOpen=(S.mtgOpen&&S.mtgOpen[it.id]!==undefined)?S.mtgOpen[it.id]:isMtg;
   const mStat=[tr0?tr0.split(/\s+/).length.toLocaleString()+" words":"no transcript",it.summary?"summary ready":""].filter(Boolean).join(" · ");
   const row=(l,c)=>`<label>${l}</label><div>${c}</div>`;
-  return`<div class="exp" data-xid="${id}">
-   <div class="xhead"><div class="xtr"><input class="xtitle" data-f="text" value="${esc(it.text)}" aria-label="Title"><button class="xpop" data-act="popout" data-id="${id}" title="Open in its own tab" aria-label="Open in its own tab">⧉</button></div>
+  const meetH=isEv?`<details class="xs xmeet" data-mid="${id}" ${mOpen?"open":""}><summary><span class="xt">Meeting summary</span><span class="mute dsm">${esc(mStat)}</span></summary><div class="xg">${meetingSec(it)}</div></details>`:"";if(o.meetOnly)return meetH;
+  return`<div class="exp${o.insp?" in-insp":""}${o.panel?" in-panel":""}" data-xid="${id}">
+   <div class="xhead">${o.panel?"":`<div class="xtr"><textarea class="xtitle" data-f="text" rows="1" aria-label="Title">${esc(it.text)}</textarea></div>`}
     <div class="xkind">${seg("kind",[["task","Task"],["event","Event"],["note","Note / idea"]],k)}${seg("star",[["0","Normal"],["1","★ Priority"]],it.star?"1":"0")}${k==="task"?seg("status",[["open","Open"],["done","Done"],["dropped","Dropped"]],st):""}${k==="task"?seg("list",[["next","Next"],["waiting","Waiting for"],["someday","Someday"]],listOf(it)):""}${isEv?seg("sub",[["","Event"],["meeting","Meeting"]],it.sub||""):""}<button data-act="sens" class="xsens ${it.sensitive?"on":""}" data-id="${id}" title="${it.sensitive?sensTip(it):"Mark sensitive (money, religion, conflict, health…). It will be hidden in lists until opened."}">🔒 ${it.sensitive?"Sensitive":"Sensitive?"}</button>${it.sensitive?`<button data-act="unreveal" data-id="${id}" class="xsens">Hide again</button>`:""}</div></div>
-   <div class="xs"><div class="xt">Description</div><div class="kwrap">${keyHero(it)}<div class="kmain">${noteEditor(it)}</div></div><div class="xg" style="margin-top:8px">${imagesRow(it)}</div></div>
-   ${isEv?`<details class="xs xmeet" data-mid="${id}" ${mOpen?"open":""}><summary><span class="xt">Meeting summary</span><span class="mute dsm">${esc(mStat)}</span></summary><div class="xg">${meetingSec(it)}</div></details>`:""}
+   ${o.panel?"":`<div class="xs"><div class="xt">Notes</div><div class="kwrap">${keyHero(it)}<div class="kmain">${noteEditor(it)}</div></div><div class="xg" style="margin-top:8px">${imagesRow(it)}</div></div>`}
+   ${o.panel?"":meetH}
    <div class="xs"><div class="xt">When</div><div class="xg">
     ${k==="task"?"":row(isEv?"Date":"Day",`<input type="date" data-f="date" value="${esc(it.date||"")}"> ${isEv?`<input data-f="time" placeholder="time, e.g. 10:00 AM" value="${esc(it.time||"")}" style="width:140px"> <span class="mute">through</span> <input type="date" data-f="end" value="${esc(it.end||"")}">`:""} <span class="mute">${esc(rel(it.date))}</span>`)}
     ${k==="task"?row("Due",`<div class="qb"><input type="date" data-f="due" value="${esc(it.due||"")}"> ${dueQ.map(([v,l])=>`<button data-act="duebtn" data-id="${id}" data-v="${v}">${l}</button>`).join("")}</div>`):""}
@@ -309,7 +313,7 @@ function expHtml(it){
    </div></div>
    <div class="xmeta">${k==="task"?`Logged <input type="datetime-local" data-f="loggedAt" value="${esc((it.loggedAt||"").slice(0,16))}" style="width:180px"> <button data-act="lognow" data-id="${id}">Now</button> · <span title="The daily page this task sits on. It moves forward when the task is migrated.">Logged on day <input type="date" data-f="date" value="${esc(it.date||"")}" style="width:128px"></span> · ${it.status==="done"&&it.doneAt?"Completed "+esc(fmtDT(it.doneAt)):"Due "+esc(shortDate(tday(it)))} · Migrated ${nmig(it)}×${(it.migs||[]).length?" ("+(it.migs||[]).map(m=>esc(shortDate(m.from)+"→"+shortDate(m.to))).join(", ")+")":""}`:`Logged <input type="datetime-local" data-f="loggedAt" value="${esc((it.loggedAt||"").slice(0,16))}" style="width:180px"> <button data-act="lognow" data-id="${id}">Now</button>`}</div>
    <div class="ft"><span>Originally logged ${esc(shortDate(carriedN(it)?it.history[0]:it.date))}${carriedN(it)?" · migrated "+carriedN(it)+"× · now on "+esc(shortDate(it.date)):""}</span><span class="sp"></span>
-    ${canMig?`<button data-act="mig" data-id="${id}">Migrate to…</button><button data-act="drop" data-id="${id}">Drop</button>`:""}<button class="warn" data-act="delitem" data-id="${id}">🗄 Archive</button><button data-act="collapse" data-id="${id}">Collapse</button></div></div>`;
+    ${o.insp||o.panel?"":`${canMig?`<button data-act="mig" data-id="${id}">Migrate to…</button><button data-act="drop" data-id="${id}">Drop</button>`:""}<button class="warn" data-act="delitem" data-id="${id}">Archive</button><button data-act="collapse" data-id="${id}">Close</button>`}</div></div>`;
 }
 function detailHtml(it){
   const d=(it.detail||"").trim();if(!d)return"";const mo=S.moreOpen[it.id],long=d.length>90||d.includes("\n");
@@ -353,14 +357,14 @@ function itemRow(it,o){
   const lt=k==="note"&&it.loggedAt&&it.loggedAt.length>10?`<span class="tm" title="Logged ${esc(fmtDT(it.loggedAt))}">${esc(normTime(it.loggedAt.slice(11,16)))}</span>`:"";
   const onEv=k==="note"&&(it.events||[]).length?`<span class="cb" data-go="event:${esc(it.events[0])}" style="cursor:pointer" title="Attached to this event">↳ ${esc(evLabel(itemById(it.events[0])||{text:"event",date:""}))}</span>`:"";
   const full=S.detailMode==="all"&&!open;
-  const acs0=`<span class="ac"><button class="lnk" data-act="popout" title="Open in its own tab">⧉</button><button class="lnk" data-act="edit" title="Open">✎</button></span>`;
+  const acs0=`<span class="ac"><button class="lnk" data-act="popout" title="Open full page">⧉</button><button class="lnk" data-act="edit" title="Open">✎</button></span>`;
   if(it.sensitive&&!(open&&S.reveal[it.id]))return maskRow(it,lead,acs0);
-  return`<div class="it ${k==="task"?st:""}" data-id="${esc(it.id)}">${lead}
+  return`<div class="it ${k==="task"?st:""}${S.sel===it.id?" sel":""}" data-id="${esc(it.id)}">${lead}
    <div class="mid"><div class="ttl">${it.sensitive?`<span class="sens" title="${sensTip(it)}">🔒 </span>`:""}${it.star?'<span class="star">★ </span>':""}${c.time&&k==="event"?`<span class="tm">${esc(c.time)}</span>`:lt}<span data-act="edit">${mdTitle(it,c.t)}</span>${left}${car}${lbadge(it)}${onEv}</div>
     ${full?detailHtml(it):""}
     ${full?`<div>${chips(it)}</div>`:""}</div>
    ${keyThumb(it)}<div class="rt">${heldDone(it)?`<button class="lnk undo-i" data-act="undone" data-id="${esc(it.id)}">Undo</button>`:""}${S.fields.due?duePill(it):""}</div>
-   <span class="ac"><button class="lnk" data-act="star" title="Priority">★</button><button class="lnk" data-act="popout" title="Open in its own tab">⧉</button>${isOpen(it)?`<button class="lnk" data-act="qmig" title="Migrate to ${tday(it)<today()?"today":"tomorrow"}">↪</button>`:""}<button class="lnk" data-act="edit" title="Open">✎</button></span></div>${open?expHtml(it):""}`;
+   <span class="ac"><button class="lnk" data-act="star" title="Priority">★</button><button class="lnk" data-act="popout" title="Open full page">⧉</button>${isOpen(it)?`<button class="lnk" data-act="qmig" title="Migrate to ${tday(it)<today()?"today":"tomorrow"}">↪</button>`:""}<button class="lnk" data-act="edit" title="Open">✎</button></span></div>`;
 }
 /* ---------- list / table / board with filters ---------- */
 function itemsView(items,key,defGroup,opts){
@@ -558,7 +562,7 @@ async function addQuick(txt,date,sphereOverride,preset){
   const stars=V().filter(i=>isOpen(i)&&i.star&&tday(i)===tday(it)).length;
   const bits=[({task:"Task",event:"Event",note:"Note"})[it.kind],it.sphere.replace(/^\S+\s/,""),shortDate(tday(it))];if(it.kind==="event"&&it.time)bits.push(it.time);
   if(people.length)bits.push(people.map(pname).join(", "));if(p.colls.length)bits.push(p.colls.map(cname).join(", "));if(p.star)bits.push("★"+(stars>CAP?" (over cap)":""));
-  toastUndo("Added: "+bits.join(" · "),async()=>{S.items=S.items.filter(i=>i.id!==it.id);S._m=null;await del("items",it.id);render()},()=>{S.expanded[it.id]=true;if(S.view!=="daily"){S.date=tday(it);location.hash="#day:"+tday(it)}else{S.date=tday(it);location.hash="#day:"+tday(it);paintContent()}});
+  toastUndo("Added: "+bits.join(" · "),async()=>{S.items=S.items.filter(i=>i.id!==it.id);S._m=null;await del("items",it.id);render()},()=>openItem(it.id));
 }
 /* ---------- pages ---------- */
 function bySphere(items){const m=new Map();SPHERES.forEach(s=>m.set(s,[]));items.forEach(i=>{const s=i.sphere||DEFAULT_SPHERE;if(!m.has(s))m.set(s,[]);m.get(s).push(i)});return m}
@@ -593,14 +597,14 @@ function evRow(it,o){o=o||{};
   const open=S.expanded[it.id],has=it.detail&&it.detail.trim(),c=cleanTitle(it),dl=o.detail||"normal";
   const show=has&&!open&&!o.nonotes&&dl!=="compact"&&S.detailMode!=="none";
   const glyph=leadIcon(it);
-  const acs=`<span class="ac"><button class="lnk" data-act="popout" title="Open in its own tab">⧉</button><button class="lnk" data-act="edit" title="Open">✎</button></span>`;
+  const acs=`<span class="ac"><button class="lnk" data-act="popout" title="Open full page">⧉</button><button class="lnk" data-act="edit" title="Open">✎</button></span>`;
   if(it.sensitive&&!(open&&S.reveal[it.id]))return maskRow(it,glyph,acs);
   const ims=o.imgs?imgsOf(it.id):[],th=ims.length?(ims.find(m=>m.id===it.thumb)||ims[0]):null;
   const full=dl==="full"&&!open;
   return`<div class="it ${it.main?"ismain":""} ${whoseOf(it)==="other"?"other":""}" data-id="${esc(it.id)}">${glyph}
    <div class="mid">${evTtl(it,c,dl,o)}
     ${show?detailHtml(it):""}${full?`<div>${chips(it)}</div>`:""}</div>
-   ${th?`<img class="evthumb" data-act="imgview" data-iid="${esc(th.id)}" src="${esc(imgSrc(th))}" alt="" title="${esc(th.desc||"")}">`:""}${acs}</div>${open?expHtml(it):""}`;
+   ${th?`<img class="evthumb" data-act="imgview" data-iid="${esc(th.id)}" src="${esc(imgSrc(th))}" alt="" title="${esc(th.desc||"")}">`:""}${acs}</div>`;
 }
 function attentionItems(){
   const a=[],td=today(),open=V().filter(isOpen),pn=inboxNew(),od=open.filter(overdue).sort((x,y)=>tday(x).localeCompare(tday(y))),stale=open.filter(i=>carriedN(i)>=3);
@@ -645,7 +649,7 @@ function clar(p,tab){
    `<input type='date' data-act='pfield' data-f='date' value='${esc(it.date||p.date||'')}'>`+
    `<select data-act='pfield' data-f='sphere'>${sphereOpts(it.sphere||DEFAULT_SPHERE)}</select></div>`;
 }
-function wrRow(i,btns,meta){return `<div class='it' data-id='${esc(i.id)}'><span class='chk' data-act='cycle' data-tip='Mark complete'></span><div class='mid'><div class='ttl'><span data-act='edit'>${esc(i.text)}</span>${i.star?"<span class='star'> ★</span>":''}</div><div class='dt'>${meta}</div><div class='row' style='gap:4px;margin-top:4px'>${btns}</div></div></div>${S.expanded[i.id]?expHtml(i):''}`}
+function wrRow(i,btns,meta){return `<div class='it' data-id='${esc(i.id)}'><span class='chk' data-act='cycle' data-tip='Mark complete'></span><div class='mid'><div class='ttl'><span data-act='edit'>${esc(i.text)}</span>${i.star?"<span class='star'> ★</span>":''}</div><div class='dt'>${meta}</div><div class='row' style='gap:4px;margin-top:4px'>${btns}</div></div></div>`}
 function pageWeekly(){
   const td=today(),open=V().filter(isOpen),nb=(v,l,c)=>`<button data-act='wr' data-v='${v}' ${c?`class='${c}'`:''}>${l}</button>`;
   const inbox=inboxNew().length;
@@ -694,7 +698,7 @@ function openTriage(k){const T=TRI[k];if(!T)return;S.triK=k;
     if(k2==="close"){closeModal();return}
     if(k2==="alltoday"){for(const i of T.f())await migrate(i,today(),true);openTriage(k);return}
     if(!it)return;
-    if(k2==="open"){closeModal();S.expanded[it.id]=true;location.hash="#day:"+tday(it);return}
+    if(k2==="open"){closeModal();openItem(it.id);return}
     if(k2==="done"){it.status="done";it.doneAt=localIso();await saveItem(it)}
     else if(k2==="today")await migrate(it,today(),true);
     else if(k2==="tmr")await migrate(it,addDays(today(),1),true);
@@ -953,7 +957,7 @@ function keyThumb(it,cls){if(!it||it.sensitive)return"";const m=keyImg(it);retur
 function imagesRow(it){
   const ms=imgsOf(it.id).slice().sort((a,b)=>(a.created||0)-(b.created||0)),k=keyImg(it),id=esc(it.id);
   const th=ms.map(m=>{const isK=k&&k.id===m.id;return`<div class="kth ${isK?"key":""}"><img src="${esc(imgSrc(m))}" alt="${esc(m.desc||"")}" draggable="false" data-act="imgview" data-iid="${esc(m.id)}" title="${esc(m.desc||"Open details, tags and description")}">${isK?`<span class="kb">★ Key</span>`:""}<button class="kx" data-act="kimgdet" data-id="${id}" data-iid="${esc(m.id)}" title="Detach from this item (the image stays in Images)">×</button>${isK?"":`<button class="kk lnk" data-act="kimgkey" data-id="${id}" data-iid="${esc(m.id)}">☆ Make key</button>`}</div>`}).join("");
-  return`<label>Images</label><div><div class="kdz" data-kdz="${id}" tabindex="0">${ms.length?`<div class="kst">${th}</div>`:""}<div class="row" style="margin-top:${ms.length?8:0}px"><button data-act="imgpick" data-id="${id}">+ Add images</button><button type="button" data-act="kimgpaste" data-id="${id}" title="Paste an image from the clipboard">📋 Paste image</button><input type="file" accept="image/*" multiple hidden data-act="imgfile" data-id="${id}">${SRCDL}<span class="mute dsm">${ms.length?ms.length+" of "+MAXIMG+" · ":""}Drag images here (or onto this item), or paste with Ctrl/⌘+V. Each is shrunk to under 2 MB. The first is the key image; it shows in lists and the monthly log.</span></div></div></div>`}
+  return`<label>Images</label><div><div class="kdz" data-kdz="${id}" tabindex="0" title="Drag images here, or paste with ⌘V">${ms.length?`<div class="kst">${th}</div>`:""}<div class="row" style="margin-top:${ms.length?8:0}px"><button data-act="imgpick" data-id="${id}">Add Images</button><button type="button" data-act="kimgpaste" data-id="${id}" title="Paste an image from the clipboard">Paste Image</button><input type="file" accept="image/*" multiple hidden data-act="imgfile" data-id="${id}">${SRCDL}<span class="mute dsm">${ms.length?ms.length+" of "+MAXIMG+" · ":""}Drag images here (or onto this item), or paste with Ctrl/⌘+V. Each is shrunk to under 2 MB. The first is the key image; it shows in lists and the monthly log.</span></div></div></div>`}
 async function pasteImgs(id,zone){
   try{
     if(!navigator.clipboard||!navigator.clipboard.read)throw 0;
@@ -1422,7 +1426,7 @@ function fixTime(it){
 async function sweepTimes(){let n=0;for(const i of S.items.slice()){if(fixTime(i)){upsertLocal("items",i);await save("items",i);n++}}if(n){S._m=null;render()}}
 /* ---------- notes on events, editor, auto-tagging ---------- */
 const evNotes=ev=>V().filter(i=>i.kind==="note"&&(i.events||[]).includes(ev.id)).sort((a,b)=>(a.loggedAt||"").localeCompare(b.loggedAt||"")||(a.created||0)-(b.created||0));
-function noteEditor(it){const big=it.kind!=="task",pv=mdStart(it.id,it.detail,S.mdPrev);return`<div class="nedit mdwrap ${big?"":"sm"}"><div class="tb"><button data-act="ed" data-v="bullet" title="Bulleted list for the selected lines">• List</button><button data-act="ed" data-v="num" title="Numbered list for the selected lines">1. List</button><button data-act="ed" data-v="indent" title="Indent (makes a sub-list)">⇥</button><button data-act="ed" data-v="outdent" title="Outdent">⇤</button><button data-act="ed" data-v="head" title="Make the line a heading">H</button><button data-act="ed" data-v="bold" title="Bold the selection"><b>B</b></button><button data-act="ed" data-v="time" title="Insert the current time">🕐 Time</button><button data-act="edimg" title="Insert an image here">🖼 Image</button><input type="file" accept="image/*" hidden data-act="edimgfile"><span class="mute" style="font-size:.78em">Markdown. People, events and collections are tagged when you click out.</span><button type="button" class="mdtog" data-act="mdtog" title="Switch between the Markdown text and the formatted view">${pv?"✎ Markdown":"👁 Formatted"}</button></div><textarea data-f="detail" ${pv?"hidden":""} placeholder="${it.kind==="note"?"Write your note…":"Notes"}">${esc(it.detail||"")}</textarea><div class="mdp mkd" ${pv?"":"hidden"}>${pv?(inlineImgs(mdRender(it,it.detail||""),1)||'<span class="mute">Nothing yet.</span>'):""}</div></div>`}
+function noteEditor(it){const big=it.kind!=="task",pv=mdStart(it.id,it.detail,S.mdPrev);return`<div class="nedit mdwrap ${big?"":"sm"}"><div class="tb"><button data-act="ed" data-v="bullet" title="Bulleted list for the selected lines">• List</button><button data-act="ed" data-v="num" title="Numbered list for the selected lines">1. List</button><button data-act="ed" data-v="indent" title="Indent (makes a sub-list)">⇥</button><button data-act="ed" data-v="outdent" title="Outdent">⇤</button><button data-act="ed" data-v="head" title="Make the line a heading">H</button><button data-act="ed" data-v="bold" title="Bold the selection"><b>B</b></button><button data-act="ed" data-v="time" title="Insert the current time">Time</button><button data-act="edimg" title="Insert an image here">Image</button><input type="file" accept="image/*" hidden data-act="edimgfile"><span class="mute" style="font-size:.78em">Markdown. People, events and collections are tagged when you click out.</span><button type="button" class="mdtog" data-act="mdtog" title="Switch between the Markdown text and the formatted view">${pv?"Markdown":"Formatted"}</button></div><textarea data-f="detail" ${pv?"hidden":""} placeholder="${it.kind==="note"?"Write your note…":"Notes"}">${esc(it.detail||"")}</textarea><div class="mdp mkd" ${pv?"":"hidden"}>${pv?(inlineImgs(mdRender(it,it.detail||""),1)||'<span class="mute">Nothing yet.</span>'):""}</div></div>`}
 function growTa(t){t.style.height="auto";t.style.height=Math.max(t.scrollHeight+2,t.closest(".nedit.sm")?80:170)+"px"}
 function edCmd(ta,c){
   const v=ta.value;let a=ta.selectionStart,b=ta.selectionEnd;const ls=v.lastIndexOf("\n",a-1)+1;let le=v.indexOf("\n",b);if(le<0)le=v.length;
@@ -1471,7 +1475,7 @@ function monthLog(d){const[y,m]=String(d).split("-").map(Number);return MONTHS_L
 function ask(msg,ok){return new Promise(res=>{let b=document.getElementById("ask");if(b)b.remove();b=document.createElement("div");b.id="ask";b.className="askbar";b.innerHTML=`<div style="margin-bottom:8px">${esc(msg)}</div><div class="row"><button class="pri" id="ask_ok">${ok||"OK"}</button><button id="ask_no">Cancel</button></div>`;document.body.appendChild(b);const done=v=>{b.remove();res(v)};b.querySelector("#ask_ok").onclick=()=>done(true);b.querySelector("#ask_no").onclick=()=>done(false)})}
 function askText(msg,val){return new Promise(res=>{let b=document.getElementById("ask");if(b)b.remove();b=document.createElement("div");b.id="ask";b.className="askbar";b.innerHTML=`<div style="margin-bottom:6px">${esc(msg)}</div><input id="ask_in" value="${esc(val||"")}" style="width:100%;margin-bottom:8px"><div class="row"><button class="pri" id="ask_ok">Save</button><button id="ask_no">Cancel</button></div>`;document.body.appendChild(b);const i=b.querySelector("#ask_in");i.focus();i.select();const done=v=>{b.remove();res(v)};b.querySelector("#ask_ok").onclick=()=>done(i.value);b.querySelector("#ask_no").onclick=()=>done(null);i.onkeydown=e=>{if(e.key==="Enter")done(i.value)}})}
 const ARCH_MSG="Archived items are kept for 30 days, then deleted for good. You can restore them from Archived in the sidebar.";
-async function archiveItem(it){it.archivedAt=Date.now();delete S.expanded[it.id];await saveItem(it);toastUndo("Archived (kept 30 days).",async()=>{delete it.archivedAt;await saveItem(it)});render()}
+async function archiveItem(it){it.archivedAt=Date.now();delete S.expanded[it.id];if(S.sel===it.id)S.sel=null;await saveItem(it);toastUndo("Archived (kept 30 days).",async()=>{delete it.archivedAt;await saveItem(it)});render()}
 async function archiveEnt(c,x){x.archivedAt=Date.now();upsertLocal(c,x);await save(c,x);toast("Archived. Restore it from Archived in the sidebar.",4000);render()}
 function archCount(){return S.items.filter(i=>i.archivedAt).length+(S.arch_people||[]).length+(S.arch_colls||[]).length}
 async function purgeArchive(){const lim=Date.now()-30*864e5;let n=0;
@@ -1501,20 +1505,16 @@ function hashTitle(h){const x=h.slice(1),i=x.indexOf(":"),v=i<0?x:x.slice(0,i),a
   if(v==="person"){const p=S.people.find(p=>p.id===a);return p?p.name:"Person"}
   if(v==="day")return a===today()?"Today":shortDate(a);if(v==="month")return a?monthLog(a+"-01"):"Month";
   return TITLES[v]||"Daily log"}
-function tabBar(){
-  if(!S.ptabs.length)return"";const cur=location.hash||"#day:"+today();
-  const main=S.mainHash||"#day:"+today();
-  return`<div class="tabs"><div class="tab ${S.ptabs.some(t=>t.h===cur)?"":"on"}" data-act="gotab" data-h="${esc(main)}"><span class="t">${esc(hashTitle(main))}</span></div>${S.ptabs.map((t,n)=>`<div class="tab ${t.h===cur?"on":""}" data-act="gotab" data-h="${esc(t.h)}"><span class="t">${esc(hashTitle(t.h))}</span><b data-act="closetab" data-n="${n}" title="Close tab">×</b></div>`).join("")}</div>`}
-function popOut(id){const it=itemById(id);if(!it)return;const h=(it.kind==="event"?"#event:":"#obj:")+id;if(!S.ptabs.some(t=>t.h===h))S.ptabs.push({h});saveTabs();S.expanded[id]=true;location.hash=h}
+function tabBar(){return""} /* pop-out tabs retired (docs/DESIGN.md: where things open) */
+function popOut(id){openFull(id)}
 function saveTabs(){try{localStorage.setItem("bj-tabs",JSON.stringify(S.ptabs))}catch(e){}}
 function loadPw(){try{if(localStorage.getItem("bj-sbc"))document.body.classList.add("sbc")}catch(e){}try{S.pw=localStorage.getItem("bj-pw")||"m"}catch(e){S.pw="m"}}
 function loadTabs(){try{S.ptabs=(JSON.parse(localStorage.getItem("bj-tabs")||"[]")||[]).filter(t=>t&&t.h)}catch(e){S.ptabs=[]}}
 function pageObj(){
   const x=itemById(S.arg);if(!x)return`<p>Item not found.</p>`;
-  const linked=V().filter(i=>i.id!==x.id&&((i.events||[]).includes(x.id)||(x.events||[]).includes(i.id)||(x.related||[]).includes(i.id)||(i.related||[]).includes(x.id)));
-  if(x.sensitive&&!S.reveal[x.id])return`<div class="panel"><p>🔒 <b>Sensitive ${esc(x.kind)}</b> · ${esc(shortDate(x.date))}</p><p class="mute">${sensTip(x)}</p><button class="pri" data-act="reveal" data-id="${esc(x.id)}">Reveal</button></div>`;
-  S.expanded[x.id]=true;
-  return`<p class="mute" style="margin:0 0 6px"><b>${esc(longDate(tday(x)))}</b> · <a href="#day:${esc(tday(x))}">open that day's log</a></p>`+expHtml(x)+`<h2 style="margin:16px 0 4px;font-size:1rem">Linked <span class="c">${linked.length}</span></h2>`+(linked.length?linked.map(i=>i.kind==="event"?evRow(i):itemRow(i)).join(""):`<p class="mute">Nothing linked yet.</p>`)}
+  if(x.sensitive&&!S.reveal[x.id])return`<div class="panel"><p><b>Sensitive ${esc(x.kind)}</b> · ${esc(shortDate(x.date))}</p><p class="mute">${sensTip(x)}</p><button class="pri" data-act="reveal" data-id="${esc(x.id)}">Reveal</button></div>`;
+  return docPage(x);
+}
 /* ---------- tint colours ---------- */
 const TINT0={events:"#3b82f6",tasks:"#22c55e",notes:"#f59e0b"},SPH_PAL=["#6366f1","#0ea5e9","#84cc16","#f97316","#ec4899","#14b8a6","#a855f7"];
 function tintFor(k){if(S.colors&&S.colors[k])return S.colors[k];if(TINT0[k])return TINT0[k];const n=k.replace(/^sphere:/,"");const i=SPHERES.indexOf(n);return SPH_PAL[(i<0?hue(n)%SPH_PAL.length:i)%SPH_PAL.length]}
@@ -1536,7 +1536,7 @@ function meetingSec(it){
   const ai=tr?`<div class="mute" style="margin-top:4px">${work?"Pulling action items…":it.trSig?`Action items: ${it.trCount||0} sent to your Inbox.`:"No action items pulled yet."} ${S.sample&&!work?`<button data-act="trextract" data-id="${id}">${it.trSig?"Pull again":"Pull action items"}</button>`:""}</div>`:"";
   const sw=S.sumWork&&S.sumWork[it.id],sf=it.sumFmt||"para";
   const sumHd=S.sample?`<div class="sumhd"><span class="mute dsm">${sw?"Writing summary…":it.summary&&it.summaryAuto?"AI summary: "+esc((SUMFMT.find(x=>x[0]===sf)||SUMFMT[0])[1]).toLowerCase():""}</span><span class="sp"></span><button data-act="summenu" data-id="${id}" title="${tr?"Generate or regenerate the summary in a different format":"Add a transcript first"}" ${sw?"disabled":""}>✨ Summary ▾</button>${S.sumMenu===it.id?`<div class="summenu">${SUMFMT.map(([k,l])=>`<button data-act="sumgen" data-id="${id}" data-fmt="${k}" class="${sf===k&&it.summary&&it.summaryAuto?"on":""}">${l}${sf===k&&it.summary&&it.summaryAuto?" ✓":""}</button>`).join("")}</div>`:""}</div>`:"";
-  return`<label>Summary</label><div class="sumw">${sumHd}${(()=>{const fv=S.sumEdit&&S.sumEdit[it.id]!==undefined?!S.sumEdit[it.id]&&!!it.summary:mdStart(null,it.summary);return`<div class="nedit sm mdwrap"><div class="mdbar"><span class="mute dsm">Markdown</span><button type="button" class="mdtog" data-act="mdtog" title="Switch between the Markdown text and the formatted view">${fv?"✎ Markdown":"👁 Formatted"}</button></div><textarea data-f="summary" ${fv?"hidden":""} placeholder="Summary: decisions, takeaways, next steps. Generated from the transcript, or type your own. Markdown works.">${esc(it.summary||"")}</textarea><div class="mdp mkd" ${fv?"":"hidden"}>${fv?mdRender(it,it.summary):""}</div></div>`})()}</div>
+  return`<label>Summary</label><div class="sumw">${sumHd}${(()=>{const fv=S.sumEdit&&S.sumEdit[it.id]!==undefined?!S.sumEdit[it.id]&&!!it.summary:mdStart(null,it.summary);return`<div class="nedit sm mdwrap"><div class="mdbar"><span class="mute dsm">Markdown</span><button type="button" class="mdtog" data-act="mdtog" title="Switch between the Markdown text and the formatted view">${fv?"Markdown":"Formatted"}</button></div><textarea data-f="summary" ${fv?"hidden":""} placeholder="Summary: decisions, takeaways, next steps. Generated from the transcript, or type your own. Markdown works.">${esc(it.summary||"")}</textarea><div class="mdp mkd" ${fv?"":"hidden"}>${fv?mdRender(it,it.summary):""}</div></div>`})()}</div>
    <label>Transcript</label><div>${tr?`<button data-act="trtoggle" data-id="${id}">${open?"Hide transcript":"Show transcript"} <span class="mute">· ${tr.split(/\s+/).length.toLocaleString()} words</span></button> <button data-act="trclear" data-id="${id}" class="warn">Remove</button> ${S.sample?`<button data-act="trsum" data-id="${id}" ${sw?"disabled":""}>✨ ${it.summary?"Regenerate":"Generate"} summary</button> `:""}${evb}${open?`<pre class="trbox">${esc(tr)}</pre>`:`<span class="mute"> Hidden until you open it.</span>`}${ai}`:`<input type="file" accept=".txt,.vtt,.srt,.md" data-act="trfile" data-id="${id}"> <span class="mute">or</span> <button data-act="trpaste" data-id="${id}">Paste transcript</button> ${evb}${S.trPaste===it.id?`<textarea id="trta" style="min-height:240px;margin-top:4px" placeholder="Paste the transcript"></textarea><button class="pri" data-act="trsave" data-id="${id}">Save transcript and pull action items</button>`:""}`}</div>
    <label>Source link</label><div><input data-f="tlink" placeholder="Link to the recording, Zoom page, or Evernote note" value="${esc(it.tlink||"")}" style="width:min(100%,440px)"> ${it.tlink?`<a class="chip src" href="${esc(it.tlink)}" target="_blank" rel="noopener">⎘ Open</a>`:""}${it.tname?` <span class="mute dsm">${esc(it.tname)}</span>`:""}</div>`}
 /* ---------- people: intelligence ---------- */
@@ -1951,16 +1951,14 @@ function pageReport(){
   const tile=(n,l)=>`<div class="panel" style="flex:1;min-width:140px;margin:0"><div style="font-size:1.6rem;font-weight:700">${n}</div><div class="mute">${l}</div></div>`;
   let h=`<p class="mute">One record per task. Each keeps when it was logged, its due date, when it was completed, and every time it was migrated, so you can see what you do versus what you keep pushing.</p>
   <div class="row" style="gap:10px;align-items:stretch">${tile(T.length,"tasks logged")}${tile(done.length,"completed")}${tile(open.length,"open")}${tile(same,"done the day they were logged")}${tile(avg,"avg days, logged to done")}${tile(migd.length,"migrated at least once")}</div>
-  <div class="panel"><h2>Most-migrated open tasks <span class="c">${top.length}</span></h2>${top.length?top.map(i=>`<div class="it" data-id="${esc(i.id)}"><span class="chk" data-act="cycle" data-tip="Mark complete"></span><div class="mid"><div class="ttl"><span data-act="edit">${esc(i.text)}</span></div><div class="dt">Logged ${esc(shortDate(loggedOf(i)))} · due ${esc(shortDate(tday(i)))} · migrated ${nmig(i)}×</div></div></div>${S.expanded[i.id]?expHtml(i):""}`).join(""):`<p class="mute">No open task has been migrated yet.</p>`}</div>
+  <div class="panel"><h2>Most-migrated open tasks <span class="c">${top.length}</span></h2>${top.length?top.map(i=>`<div class="it" data-id="${esc(i.id)}"><span class="chk" data-act="cycle" data-tip="Mark complete"></span><div class="mid"><div class="ttl"><span data-act="edit">${esc(i.text)}</span></div><div class="dt">Logged ${esc(shortDate(loggedOf(i)))} · due ${esc(shortDate(tday(i)))} · migrated ${nmig(i)}×</div></div></div>`).join(""):`<p class="mute">No open task has been migrated yet.</p>`}</div>
   <div class="panel"><h2>By sphere</h2><table><thead><tr><th>Sphere</th><th>Logged</th><th>Done</th><th>Open</th><th>Migrations</th></tr></thead><tbody>${SPHERES.map(sp=>{const t=T.filter(i=>(i.sphere||DEFAULT_SPHERE)===sp);return`<tr><td>${esc(sp)}</td><td>${t.length}</td><td>${t.filter(i=>i.status==="done").length}</td><td>${t.filter(isOpen).length}</td><td>${t.reduce((a,i)=>a+nmig(i),0)}</td></tr>`}).join("")}</tbody></table></div>`;
   return h;
 }
 
 function pageEvent(){
   const x=itemById(S.arg);if(!x||x.kind!=="event")return`<p>Event not found. <a href="#events">Back to events</a></p>`;
-  const linked=V().filter(i=>i.id!==x.id&&((i.events||[]).includes(x.id)||(x.events||[]).includes(i.id)||(x.related||[]).includes(i.id)||(i.related||[]).includes(x.id)));
-  S.expanded[x.id]=true;
-  return`<p class="mute" style="margin:0 0 6px"><b>${esc(longDate(x.date))}${x.end?" – "+esc(longDate(x.end)):""}</b>${cleanTitle(x).time?" · "+esc(cleanTitle(x).time):""} · <a href="#day:${esc(x.date)}">open that day's log</a></p>`+expHtml(x)+`<h2 style="margin:16px 0 4px;font-size:1rem">Linked <span class="c">${linked.length}</span></h2>`+(linked.length?itemsView(linked,"evl-"+x.id,""):`<p class="mute">Nothing linked yet. Use Related events and Related above to connect people, ideas, tasks and other events.</p>`);
+  return docPage(x);
 }
 function personList(){
   const P=S.pf=S.pf||{area:"",q:"",sort:"name",mode:"list",group:""};
@@ -1989,7 +1987,7 @@ function personList(){
 }
 function personHead(x){
   const fl=[["How I know them",x.context],["Type",ptList(x).join(", ")],["Relationship",relList(x).join(", ")],["Organization",x.company?orgLink(x)+(x.role?" · "+esc(x.role):""):""],["Email",x.email?`<a href="mailto:${esc(x.email)}">${esc(x.email)}</a>`:""],["Phone",x.phone]];
-  return`<div class="row" style="align-items:center"><span data-act="cropphoto" data-id="${esc(x.id)}" title="Click to crop or zoom" style="cursor:pointer">${pav(x,1)}</span><div style="flex:1"><b style="font-size:1.2rem">${esc(x.name)}</b><div class="mute">${esc(x.context||[relList(x).join(", "),x.role,x.company].filter(Boolean).join(" · "))}</div></div><button data-act="editent">Edit</button><button data-act="mergeinto">Merge into…</button><button class="xpop" data-act="poph" title="Open in its own tab" aria-label="Open in its own tab">⧉</button></div>
+  return`<div class="row" style="align-items:center"><span data-act="cropphoto" data-id="${esc(x.id)}" title="Click to crop or zoom" style="cursor:pointer">${pav(x,1)}</span><div style="flex:1"><b style="font-size:1.2rem">${esc(x.name)}</b><div class="mute">${esc(x.context||[relList(x).join(", "),x.role,x.company].filter(Boolean).join(" · "))}</div></div><button data-act="editent">Edit</button><button data-act="mergeinto">Merge into…</button></div>
   <div class="panel"><div class="pf">${fl.filter(f=>f[1]).map(([l,v])=>`<span class="mute">${l}</span><span>${l==="Email"||l==="Organization"?v:esc(v)}</span>`).join("")}${(x.links||[]).length?`<span class="mute">Links</span><span>${x.links.map(l=>`<a href="${esc(l)}" target="_blank" rel="noopener">${esc(linkLabel(l))}</a>`).join(" · ")}</span>`:""}${(x.akas||[]).length?`<span class="mute">Also appears as</span><span>${esc(x.akas.join(", "))}</span>`:""}</div></div>`;
 }
 function pageEntity(kind){
@@ -1997,7 +1995,7 @@ function pageEntity(kind){
   const arr=kind==="person"?S.people:kind==="event"?S.events:S.colls;const x=arr.find(a=>a.id===S.arg);
   if(!x)return`<p>Not found. <a href="#${kind==="person"?"people":kind==="event"?"events":"colls"}">Back</a></p>`;
   const f=kind==="person"?"people":kind==="event"?"events":"colls";const items=V().filter(i=>(i[f]||[]).includes(x.id));
-  let h=kind==="person"?personHead(x)+personPhotos(x)+`<div class="row"><span class="mute">${items.length} items</span></div>`:`<div class="row"><button data-act="editent">Edit</button>${kind==="coll"&&x.dynamic?`<button class="pri" data-act="sweep">✨ Refresh with AI</button>`:""}<span class="mute">${items.length} items</span><span class="sp"></span><button class="xpop" data-act="poph" title="Open in its own tab" aria-label="Open in its own tab">⧉</button></div>`;
+  let h=kind==="person"?personHead(x)+personPhotos(x)+`<div class="row"><span class="mute">${items.length} items</span></div>`:`<div class="row"><button data-act="editent">Edit</button>${kind==="coll"&&x.dynamic?`<button class="pri" data-act="sweep">✨ Refresh with AI</button>`:""}<span class="mute">${items.length} items</span><span class="sp"></span></div>`;
   if(x.definition)h+=`<p class="mute">Definition: ${esc(x.definition)}${x.lastRun?" · last refreshed "+new Date(x.lastRun).toLocaleDateString():""}</p>`;
   if(x.start)h+=`<p class="mute">${esc(x.start)}${x.end?" → "+esc(x.end):""}</p>`;
   if(x.note)h+=`<div class="panel mkd">${inlineImgs(mdRender(null,x.note),1)}</div>`;
@@ -2100,7 +2098,7 @@ function pageData(){
 const TITLES={img:"Image",images:"Images",daily:"Daily log",month:"Monthly log",year:"Yearly log",people:"People",person:"Person",events:"Events",event:"Event",colls:"Collections",coll:"Collection",review:"Inbox",weekly:"Weekly review",data:"Data",search:"Search",report:"Task report",obj:"Item",archived:"Archived",cleanup:"Review people",org:"Organization"};
 function pageTitle(){
   if(S.view==="list")return(LISTS[S.arg]||{}).title||"Tasks";
-  if(S.view==="person")return pname(S.arg);if(S.view==="event")return ename(S.arg);if(S.view==="coll")return cname(S.arg);
+  if(S.view==="person")return pname(S.arg);if(S.view==="event"||S.view==="obj"){const x=itemById(S.arg);return x?kindName(x):"Item"}if(S.view==="coll")return cname(S.arg);
   if(S.view==="daily")return longDate(S.date);return TITLES[S.view]||"";
 }
 function gh(key,label,extra){const c=S.collapsed[key];return`<div class="gh${c?" shut":""}" data-act="coll" data-k="${key}" role="button" aria-expanded="${!c}"><span class="ghl">${label}</span>${ic("chev","ghc")}${extra||""}</div>`}
@@ -2152,6 +2150,84 @@ function calSeg(){
   return`<span class="seg calseg" role="radiogroup" aria-label="Calendar">${[["day","Day"],["week","Week"],["month","Month"],["year","Year"]].map(([v,l])=>`<button data-act="cal" data-v="${v}" role="radio" aria-checked="${cur===v}" class="${cur===v?"on":""}">${l}</button>`).join("")}</span>`;
 }
 function mi(act,label,checked,extra){return`<button data-act="${act}"${extra||""} role="${checked==null?"menuitem":"menuitemcheckbox"}"${checked==null?"":` aria-checked="${!!checked}"`}>${ic("check","mic")}<span>${label}</span></button>`}
+
+/* ---------- where items open (docs/DESIGN.md): tasks in the side panel, notes/events/meetings full page ---------- */
+const isDocView=()=>S.view==="obj"||S.view==="event";
+function openFull(id){const it=itemById(id);if(!it)return;S.sel=null;location.hash=(it.kind==="event"?"#event:":"#obj:")+id}
+function openItem(id){const it=itemById(id);if(!it)return;
+  if(it.kind==="task"){S.sel=id;S.panel=null;paintInsp(true);document.querySelectorAll("#content .it.sel").forEach(r=>r.classList.remove("sel"));document.querySelectorAll(`#content .it[data-id="${CSS.escape(id)}"]`).forEach(r=>r.classList.add("sel"));return}
+  openFull(id)}
+function closeInsp(){S.sel=null;document.querySelectorAll("#content .it.sel").forEach(r=>r.classList.remove("sel"));paintInsp(true)}
+function togglePP(){if(!isDocView())return;S.pp=!S.pp;try{localStorage.setItem("tabula-pp",S.pp?"1":"0")}catch(e){}paintContent()}
+function openPanel(html){S.panel="entity";S.sel=null;const p=document.getElementById("insp");if(!p)return openModal(html);
+  p.dataset.mode="entity";p.innerHTML=`<div class="insp-h"><span class="insp-k">Edit</span><span class="sp"></span><button class="tbi" data-act="panelclose" title="Close (Esc)" aria-label="Close">${ic("close")}</button></div><div class="insp-b pform">${html}</div>`;
+  p.hidden=false;document.body.classList.add("insp-on")}
+function closePanel(){S.panel=null;paintInsp(true)}
+function itemMenu(x){const id=esc(x.id),open=isOpen(x);
+  return`<span class="mwrap"><button class="tbi" data-act="imenu" title="More" aria-label="More actions" aria-haspopup="menu">${ic("more")}</button><div class="menu imenu" role="menu">
+   ${x.kind==="task"&&!isDocView()?`<button data-act="openfull" data-id="${id}" role="menuitem">Open Full Page<kbd>⌘↩</kbd></button>`:""}
+   ${open?`<button data-act="mig" data-id="${id}" role="menuitem">Migrate To…</button><button data-act="drop" data-id="${id}" role="menuitem">Drop</button>`:""}
+   <button data-act="sens" data-id="${id}" role="menuitem">${x.sensitive?"Not Sensitive":"Mark as Sensitive"}</button>
+   <hr><button data-act="delitem" data-id="${id}" role="menuitem" class="red">Archive</button></div></span>`}
+const kindName=x=>x.kind==="event"?(x.sub==="meeting"||x.transcript||x.summary?"Meeting":"Event"):x.kind==="note"?"Note":"Task";
+function paintInsp(force){
+  const p=document.getElementById("insp");if(!p)return;
+  if(S.panel==="entity"&&p.dataset.mode==="entity"&&!force)return;
+  if(S.panel==="entity"&&force){S.panel=null}
+  const a=document.activeElement;if(!force&&a&&p.contains(a)&&(a.tagName==="TEXTAREA"||(a.tagName==="INPUT"&&!["checkbox","date","file"].includes(a.type)))){S.dirty=true;return}
+  let html="",mode="";
+  if(isDocView()&&S.pp){const x=itemById(S.arg);if(x&&!(x.sensitive&&!S.reveal[x.id])){mode="props";html=`<div class="insp-h"><span class="insp-k">Details</span><span class="sp"></span><button class="tbi" data-act="pp" title="Hide details (⌘I)" aria-label="Hide details">${ic("close")}</button></div><div class="insp-b">${expHtml(x,{panel:1})}</div>`}}
+  else if(S.sel){const x=itemById(S.sel);if(x&&!x.archivedAt){mode="task";html=`<div class="insp-h"><span class="insp-k">${ic("tasks")}${kindName(x)}</span><span class="sp"></span><button class="tbi" data-act="openfull" data-id="${esc(x.id)}" title="Open full page (⌘↩)" aria-label="Open full page">${ic("expand")}</button>${itemMenu(x)}<button class="tbi" data-act="inspclose" title="Close (Esc)" aria-label="Close">${ic("close")}</button></div><div class="insp-b">${expHtml(x,{insp:1})}</div>`}else S.sel=null}
+  p.dataset.mode=mode;
+  if(!html){p.innerHTML="";p.hidden=true;document.body.classList.remove("insp-on");return}
+  const st=p.scrollTop;p.innerHTML=html;p.hidden=false;document.body.classList.add("insp-on");p.scrollTop=st;growTitles(p);
+}
+function growTitles(root){(root||document).querySelectorAll("textarea.xtitle").forEach(t=>{t.style.height="auto";t.style.height=t.scrollHeight+"px"})}
+function docTokens(x){
+  const k=x.kind||"task",t=[],ct=k==="event"?cleanTitle(x):null;
+  const when=k==="event"?longDate(x.date)+(x.end?" – "+longDate(x.end):"")+(ct&&ct.time?" · "+ct.time:""):k==="task"?(x.due?"Due "+longDate(x.due):"No due date"):longDate(x.date);
+  t.push(`<button class="tok" data-act="pp">${esc(when)}</button>`);
+  t.push(`<a class="tok" href="#list:tasks" data-act="sphere" data-sp="${esc(x.sphere||DEFAULT_SPHERE)}"><i class="dot" style="background:${tintFor("sphere:"+(x.sphere||DEFAULT_SPHERE))}"></i>${esc(sphName(x.sphere||DEFAULT_SPHERE))}</a>`);
+  (x.people||[]).forEach(pid=>t.push(`<a class="tok" href="#person:${esc(pid)}">${avatarP(pid)}${esc(pname(pid))}</a>`));
+  (x.events||[]).forEach(eid=>t.push(`<a class="tok" href="#event:${esc(eid)}">${esc(ename(eid))}</a>`));
+  (x.colls||[]).forEach(cid=>t.push(`<a class="tok" href="#coll:${esc(cid)}">${esc(cname(cid))}</a>`));
+  if(x.star)t.push(`<span class="tok star">★ Priority</span>`);
+  return t.join('<span class="tsep">·</span>');
+}
+function docPage(x){
+  const k=x.kind||"task",id=esc(x.id),open=isOpen(x);
+  const linked=V().filter(i=>i.id!==x.id&&((i.events||[]).includes(x.id)||(x.events||[]).includes(i.id)||(x.related||[]).includes(i.id)||(i.related||[]).includes(x.id)));
+  const icon=k==="event"?"events":k==="note"?"notes":"tasks";
+  const chk=k==="task"?`<button class="doc-chk ${x.status||"open"}" data-act="cycle" data-id="${id}" title="${open?"Mark done":"Mark not done"}" aria-label="${open?"Mark done":"Mark not done"}">${x.status==="done"?ic("check"):""}</button>`:"";
+  return`<article class="doc">
+   <div class="doc-top"><span class="doc-kind">${ic(icon)}${kindName(x)} · <a href="#day:${esc(tday(x))}">${esc(longDate(tday(x)))}</a></span><span class="sp"></span>
+    <button class="tbtn ${S.pp?"on":""}" data-act="pp" aria-pressed="${!!S.pp}" title="Show every property (⌘I)">Details</button>${itemMenu(x)}</div>
+   <div class="exp doc-exp" data-xid="${id}">
+    <div class="doc-h">${chk}<textarea class="xtitle doc-t" data-f="text" rows="1" aria-label="Title">${esc(x.text)}</textarea></div>
+    <div class="toks">${docTokens(x)}</div>
+    <div class="doc-body">${keyHero(x)}${noteEditor(x)}<div class="doc-imgs">${imagesRow(x)}</div></div>
+    ${k==="event"?expHtml(x,{meetOnly:1}):""}
+   </div>
+   <section class="doc-linked"><h2>${k==="event"?"Notes and items for this event":"Linked here"} <span class="c">${linked.length}</span>${k==="event"?`<button class="lnk" data-act="newnote" data-id="${id}">New Note</button>`:""}</h2>
+    ${linked.length?(k==="event"?itemsView(linked,"evl-"+x.id,""):linked.map(i=>i.kind==="event"?evRow(i):itemRow(i)).join("")):`<p class="mute">Nothing linked yet. Add people, events or related items in Details.</p>`}</section>
+  </article>`;
+}
+document.addEventListener("keydown",e=>{
+  if(document.querySelector("dialog[open]")||document.getElementById("modal").classList.contains("on"))return;
+  const t=e.target,inField=t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.tagName==="SELECT"||t.isContentEditable);
+  if((e.metaKey||e.ctrlKey)&&e.key==="Enter"&&S.sel&&!isDocView()){e.preventDefault();openFull(S.sel);return}
+  if((e.metaKey||e.ctrlKey)&&!e.shiftKey&&(e.key==="i"||e.key==="I")&&isDocView()){e.preventDefault();togglePP();return}
+  if(t&&t.classList&&t.classList.contains("xtitle")&&e.key==="Enter"&&!e.shiftKey){e.preventDefault();t.blur();return}
+  if(e.key!=="Escape"||inField)return;
+  if(S.panel){closePanel();return}
+  if(S.sel){closeInsp();return}
+  if(isDocView()&&S.pp){togglePP();return}
+  if(isDocView())history.back();
+});
+document.addEventListener("input",e=>{if(e.target.classList&&e.target.classList.contains("xtitle"))growTitles(e.target.parentNode)});
+document.addEventListener("click",e=>{if(window.innerWidth<=860&&document.body.classList.contains("insp-on")&&(e.target===document.body||e.target===document.documentElement)){if(S.panel)closePanel();else if(S.sel)closeInsp();else if(S.pp)togglePP()}});
+new MutationObserver(()=>growTitles(document.getElementById("content"))).observe(document.getElementById("content"),{childList:true});
+try{S.pp=localStorage.getItem("tabula-pp")==="1"}catch(e){S.pp=false}
 function paintTop0(){
   /* Toolbar order (docs/DESIGN.md): back/forward, title, calendar range, density, More, New. */
   {const c=document.getElementById("content");if(c){c.dataset.w=S.pw||"m";c.dataset.density=dens()}}
@@ -2166,18 +2242,18 @@ function paintTop0(){
   paintBnav();
 }
 function route(){
-  S.reveal={};S.items.forEach(i=>{if(i.sensitive)delete S.expanded[i.id]});
+  S.reveal={};S.sel=null;S.panel=null;S.items.forEach(i=>{if(i.sensitive)delete S.expanded[i.id]});
   {const hh=location.hash||"";if(!S.ptabs.some(t=>t.h===hh))S.mainHash=hh||"#day:"+today()}
   const h=location.hash.slice(1);const i=h.indexOf(":");const v=i<0?h:h.slice(0,i),a=i<0?"":h.slice(i+1);
   S.arg=a;
   if(v==="day"){S.view="daily";S.date=a||today()}
-  else if(v==="item"){const it=itemById(a);if(it){S.expanded[a]=true;if(it.kind==="event"){S.view="event"}else{S.view="daily";S.date=tday(it);S.range="day"}}else S.view="daily"}
+  else if(v==="item"){const it=itemById(a);if(it){if(it.kind==="event"){S.view="event"}else if(it.kind==="task"){S.sel=a;S.view="daily";S.date=tday(it);S.range="day"}else{S.view="obj"}}else S.view="daily"}
   else if(v==="view"){const sv=S.views.find(x=>x.id===a);if(sv){const key="list-"+(sv.list||"tasks");S.filt[key]={...(sv.filt||{})};S.fq[key]=sv.fq||"";S.groups[key]=sv.group||"";S.modes[key]=sv.mode||"list";S.sorts[key]=sv.sort||{f:"date",d:1};S.view="list";S.arg=sv.list||"tasks"}else S.view="daily";S.date=today()}
   else if(!v||v==="dash"){S.view="daily";S.date=S.date||today()}else S.view=v;
   document.getElementById("side").classList.remove("open");
   paintTop();paintSide();paintContent(true);window.scrollTo(0,0);
 }
-function typing(){const a=document.activeElement;if(a&&a.classList&&a.classList.contains("qa")&&!a.value)return false;return a&&a.closest&&a.closest("#content")&&(a.tagName==="TEXTAREA"||(a.tagName==="INPUT"&&!["checkbox","date","file"].includes(a.type)))}
+function typing(){const a=document.activeElement;if(a&&a.classList&&a.classList.contains("qa")&&!a.value)return false;return a&&a.closest&&a.closest("#content,#insp")&&(a.tagName==="TEXTAREA"||(a.tagName==="INPUT"&&!["checkbox","date","file"].includes(a.type)))}
 function render(){
   if(typing()){S.dirty=true;return}
   paintSide();paintContent();
@@ -2196,7 +2272,7 @@ function paintContent(){
   c.innerHTML=(S.loadErr?`<p class="mute">${esc(S.loadErr)}</p>`:"")+(S.busy&&S.view!=="daily"&&S.view!=="coll"?`<p class="mute">⏳ ${esc(S.busy)}</p>`:"")+body;
   if(arguments.length===0)window.scrollTo(0,st);
   const af=c.querySelector("[data-autofocus]");if(af&&!af.value)af.focus();
-  paintTop();
+  paintTop();paintInsp();
 }
 loadTabs();loadPw();
 window.addEventListener("hashchange",route);
@@ -2303,7 +2379,7 @@ document.addEventListener("click",async e=>{
     case"cycle":if(it&&it.kind==="task"){if(it.status==="done")await reopenTask(it);else await completeTask(it)}break;
     case"undone":if(it)await reopenTask(it);break;
     case"star":if(it){it.star=!it.star;await saveItem(it);if(it.star){const n=V().filter(i=>isOpen(i)&&i.star&&i.date===it.date).length;if(n>CAP)toast(n+" priorities on "+it.date+" (cap "+CAP+")")}}break;
-    case"edit":if(it){S.expanded[it.id]=!S.expanded[it.id];paintContent()}break;
+    case"edit":if(it)openItem(it.id);break;
     case"qmig":if(it){const prev={date:it.date,history:[...(it.history||[])],due:it.due,status:it.status,migs:[...(it.migs||[])],ord:it.ord,logged:it.logged},to=tday(it)<today()?today():addDays(tday(it),1);await migrate(it,to,true);toastUndo("Migrated to "+shortDate(to),async()=>{Object.assign(it,prev);await saveItem(it)})}break;
     case"layout":S.layout=el.dataset.v;paintContent();break;
     case"evset":S.ev=S.ev||{};S.ev[el.dataset.k]=el.dataset.v;paintContent();break;
@@ -2332,7 +2408,7 @@ document.addEventListener("click",async e=>{
     case"dismissall":{const ps=S.props.filter(p=>p.status==="pending");for(const p of ps)await del("props",p.id);S.props=S.props.filter(p=>p.status!=="pending");toast("Dismissed "+ps.length);render();break}
     case"pmerge":mergePeople(el.dataset.from,el.dataset.to);break;
     case"mergeinto":openMergeInto(S.arg);break;
-    case"newnote":if(it){const n=await newNoteFor(it);S.expanded[n.id]=true;S.expanded[it.id]=true;paintContent();setTimeout(()=>{const ta=document.querySelector('.exp[data-xid="'+n.id+'"] textarea');if(ta)ta.focus()},60)}break;
+    case"newnote":if(it){const n=await newNoteFor(it);openFull(n.id);setTimeout(()=>{const ta=document.querySelector('.doc .nedit textarea');if(ta)ta.focus()},300)}break;
     case"ed":{const box=el.closest(".nedit"),ta=box.querySelector("textarea");edCmd(ta,el.dataset.v);break}
     case"popout":if(id)popOut(id);break;
     case"poph":{const h=location.hash||"#day:"+today();if(!S.ptabs.some(t=>t.h===h))S.ptabs.push({h});saveTabs();toast("Opened in its own tab",2000);render();break}
@@ -2388,7 +2464,7 @@ document.addEventListener("click",async e=>{
     case"curesetskip":S.cuSkip=[];S.cuTotal=0;paintContent();break;
     case"mergeinto2":openMergeInto(el.dataset.id);break;
     case"cuarch":{const p=S.people.find(x=>x.id===el.dataset.id);if(p&&await ask("Archive "+p.name+"? "+ARCH_MSG,"🗄 Archive"))await archiveEnt("people",p);break}
-    case"collapse":S.expanded[id]=false;paintContent();break;
+    case"collapse":if(S.sel===id)closeInsp();else{S.expanded[id]=false;paintContent()}break;
     case"moretxt":S.moreOpen[id]=!S.moreOpen[id];paintContent();break;
     case"delitem":if(it)await archiveItem(it);break;
     case"setf":if(it){const f=el.dataset.f,v=el.dataset.v;if(f==="star")it.star=v==="1";else if(f==="kind")it.kind=v;else if(f==="list"){setList(it,v)}else if(f==="status"){it.status=v;it.doneAt=v==="done"?localIso():null}else if(f==="sub")it.sub=v||"event";else if(f==="etype"){it.etype=v;it.etypeAuto=false;delete it.etypeAI}else if(f==="main"){it.main=v==="1";it.mainGuess=false;if(it.main)delete it.mainNo}else if(f==="whose"){setWhose(it,v)}await saveItem(it)}break;
@@ -2444,6 +2520,11 @@ document.addEventListener("click",async e=>{
       if(v==="day"||v==="week"){S.range=v;if(S.view==="daily"){paintContent();paintTop()}else location.hash="#day:"+(base.slice(0,S.view==="month"?7:4)===td.slice(0,S.view==="month"?7:4)?td:base)}
       else if(v==="month")location.hash="#month:"+monthOf(base);else location.hash="#year:"+base.slice(0,4);break}
     case"sphere":{e.preventDefault();const k="list-tasks",cur=(S.filt[k]||{}).sphere,sp=el.dataset.sp;S.filt[k]={...(S.filt[k]||{}),sphere:cur===sp&&S.view==="list"&&S.arg==="tasks"?"":sp};S.tabs[k]=S.tabs[k]||"Open";if(location.hash==="#list:tasks")route();else location.hash="#list:tasks";break}
+    case"imenu":{const m=el.parentNode.querySelector(".imenu");if(m){const was=m.classList.contains("open");document.querySelectorAll(".imenu.open").forEach(x=>x.classList.remove("open"));if(!was)m.classList.add("open")}break}
+    case"inspclose":closeInsp();break;
+    case"panelclose":closePanel();break;
+    case"pp":togglePP();break;
+    case"openfull":if(el.dataset.id)openFull(el.dataset.id);break;
     case"smenu":{const m=document.getElementById("smenu");if(m)m.classList.toggle("open");break}
     case"density":{const A=window.tabulaAppearance;if(A){const k=densKey(),v=el.dataset.v==="toggle"?(dens()==="compact"?"comfy":"compact"):el.dataset.v;A.setDensity(k,v)}paintTop();break}
     case"back":history.back();break;case"fwd":history.forward();break;
@@ -2456,7 +2537,7 @@ document.addEventListener("click",async e=>{
 });
 /* ---------- modal ---------- */
 function openModal(html,wide){const b=document.getElementById("mbox");b.classList.remove("capbox");b.innerHTML=html;b.classList.toggle("wide",!!wide);document.getElementById("modal").classList.add("on")}
-function closeModal(){if(S.capUi&&S.capUi.rec&&S.dict){try{S.dict.stop()}catch(_){}}document.getElementById("modal").classList.remove("on");if(S.pvCancel){const f=S.pvCancel;S.pvCancel=null;f()}}
+function closeModal(){if(!document.getElementById("modal").classList.contains("on")&&S.panel){closePanel();return}if(S.capUi&&S.capUi.rec&&S.dict){try{S.dict.stop()}catch(_){}}document.getElementById("modal").classList.remove("on");if(S.pvCancel){const f=S.pvCancel;S.pvCancel=null;f()}}
 document.getElementById("modal").addEventListener("mousedown",e=>{if(e.target.id==="modal")closeModal()});
 function sphereOpts(sel){return SPHERES.map(s=>`<option ${s===sel?"selected":""}>${esc(s)}</option>`).join("")}
 function multiSel(arr,sel,id){return`<select multiple id="${id}" size="4" style="min-width:200px">${arr.map(x=>`<option value="${esc(x.id)}" ${(sel||[]).includes(x.id)?"selected":""}>${esc(x.name)}</option>`).join("")}</select>`}
@@ -2557,7 +2638,7 @@ function openMergeInto(id){
 }
 function openEntity(kind,id){
   const c=kind==="person"?"people":kind==="event"?"events":"colls";const x=id?S[c].find(a=>a.id===id):{};
-  openModal(`<h3 style="margin-top:0">${id?"Edit":"New"} ${kind==="coll"?"collection":kind}</h3><div class="f"><label>Name</label><input id="n_name" value="${esc(x.name||"")}">
+  (id?openPanel:openModal)(`<h3 style="margin-top:0">${id?"Edit":"New"} ${kind==="coll"?"collection":kind}</h3><div class="f"><label>Name</label><input id="n_name" value="${esc(x.name||"")}">
   ${kind==="person"?`<label>Type</label><div>${ptypeMulti("n_type",ptList(x).length?ptList(x):guessPtype(x))}</div><label>Nickname</label><input id="n_nick" value="${esc(x.nick||"")}" placeholder="Several allowed, separated by commas"><label>Relationship</label>${relMulti("n_rel",relList(x))}<label>Email</label><input id="n_email" value="${esc(x.email||"")}"><label>Phone</label><input id="n_phone" value="${esc(x.phone||"")}"><label>How I know them</label><textarea id="n_ctx" style="min-height:50px" placeholder="e.g. I work with them at Veracross · We go to church together · YHS class of ’96">${esc(x.context||"")}</textarea><label>Organization</label><div class="row"><select id="n_co" data-addnew="organization"><option value="">—</option>${[...new Set([...(x.company?[x.company]:[]),...S.orgs.map(o=>o.name)])].sort().map(n=>`<option ${x.company===n?"selected":""}>${esc(n)}</option>`).join("")}</select><input id="n_role" placeholder="Role / title there" value="${esc(x.role||"")}" style="flex:1;min-width:140px"></div><label>This is me</label><label><input type="checkbox" id="n_self" ${x.isSelf?"checked":""}> This record is me (skipped in review, never auto-tagged in your entries)</label><label>Links</label><input id="n_links" placeholder="comma-separated URLs (LinkedIn, site…)" value="${esc((x.links||[]).join(", "))}"><label>Photo</label><div class="row">${id?pav(x)+`<button data-act="imgpick" data-id="${esc(id)}" data-person="1" type="button">Upload photo</button><input type="file" accept="image/*" hidden data-act="imgfile" data-id="${esc(id)}" data-person="1">`:`<span class="mute">Save first, then add a photo.</span>`}</div>`:""}
   ${kind==="event"?`<label>Start</label><input type="date" id="n_start" value="${esc(x.start||"")}"><label>End</label><input type="date" id="n_end" value="${esc(x.end||"")}">`:""}
   ${kind==="coll"?`<label>Dynamic</label><label><input type="checkbox" id="n_dyn" ${x.dynamic?"checked":""}> defined in plain language</label><label>Definition</label><textarea id="n_def" style="min-height:60px" placeholder="e.g. memories at home — moments with family at Asbury Grove">${esc(x.definition||"")}</textarea>`:""}
@@ -3322,7 +3403,7 @@ try{S.mdMode=localStorage.getItem("tabula_mdmode")||"formatted"}catch(e){S.mdMod
 function mdStart(id,val,store){if(store&&id&&store[id]!==undefined)return!!store[id];return S.mdMode!=="markdown"&&!!String(val||"").trim()}
 function mdTitle(it,raw){return S.mdMode==="markdown"?linkTerms(it,raw):mdInline(it,raw)}
 const mdStrip=s=>String(s||"").replace(/\[([^\]]+)\]\((https:[^)\s]+)\)/g,"$1").replace(/\*\*|~~|`/g,"").replace(/(^|[^*\w])\*([^*\s][^*]*?)\*(?![*\w])/g,"$1$2");
-function mdBar(on){return`<div class="mdbar"><button type="button" class="mdtog" data-act="mdtog" title="Switch between the Markdown text and the formatted view">${on?"✎ Markdown":"👁 Formatted"}</button></div>`}
+function mdBar(on){return`<div class="mdbar"><button type="button" class="mdtog" data-act="mdtog" title="Switch between the Markdown text and the formatted view">${on?"Markdown":"Formatted"}</button></div>`}
 function mdRender(it,src){
   const L=String(src||"").replace(/\r/g,"").split("\n"),out=[],st=[];let para=[],quote=[];
   const inl=s=>mdInline(it,s);
@@ -3356,8 +3437,8 @@ function mdToggle(el){
   const w=el.closest(".mdwrap");if(!w)return;
   const ta=w.querySelector("textarea"),pv=w.querySelector(".mdp"),btn=w.querySelector("[data-act=mdtog]");if(!ta||!pv)return;
   if(pv.hidden){const xp=w.closest(".exp"),it=xp?S.items.find(i=>i.id===xp.dataset.xid):null;
-    pv.innerHTML=inlineImgs(mdRender(it,ta.value),1)||'<span class="mute">Nothing yet.</span>';pv.hidden=false;ta.hidden=true;if(btn)btn.textContent="✎ Markdown"}
-  else{pv.hidden=true;ta.hidden=false;if(btn)btn.textContent="👁 Formatted";ta.focus();if(typeof growTa==="function"&&ta.closest(".nedit"))growTa(ta)}
+    pv.innerHTML=inlineImgs(mdRender(it,ta.value),1)||'<span class="mute">Nothing yet.</span>';pv.hidden=false;ta.hidden=true;if(btn)btn.textContent="Markdown"}
+  else{pv.hidden=true;ta.hidden=false;if(btn)btn.textContent="Formatted";ta.focus();if(typeof growTa==="function"&&ta.closest(".nedit"))growTa(ta)}
   if(w.dataset.mdkey){S.mdPrev=S.mdPrev||{};S.mdPrev[w.dataset.mdkey]=!pv.hidden}
   const xp2=w.closest(".exp");if(xp2){if(ta.dataset.f==="summary"){S.sumEdit=S.sumEdit||{};S.sumEdit[xp2.dataset.xid]=pv.hidden}else if(ta.dataset.f==="detail"){S.mdPrev=S.mdPrev||{};S.mdPrev[xp2.dataset.xid]=!pv.hidden}}
 }
@@ -3478,6 +3559,7 @@ document.addEventListener("click",e=>{
   const t=e.target.closest("[data-act=mmore],[data-act=mctl],[data-mside]");
   if(t&&t.dataset.act==="mmore"){e.preventDefault();e.stopPropagation();if(m&&m.classList.contains("open"))m.classList.remove("open");else{paintTop0();const m2=document.getElementById("mmenu");if(m2)m2.classList.add("open")}return}
   {const sm=document.getElementById("smenu");if(sm&&sm.classList.contains("open")&&!e.target.closest("[data-act=smenu]"))setTimeout(()=>sm.classList.remove("open"),0)}
+  if(!e.target.closest("[data-act=imenu]"))document.querySelectorAll(".imenu.open").forEach(x=>setTimeout(()=>x.classList.remove("open"),0));
   if(m&&m.classList.contains("open")&&!e.target.closest("[data-act=mmore]"))setTimeout(()=>m.classList.remove("open"),0);
   if(t&&t.dataset.act==="mctl"){e.preventDefault();e.stopPropagation();S.mctl=!S.mctl;paintContent();return}
   if(t&&t.dataset.mside){e.preventDefault();e.stopPropagation();document.getElementById("side").classList.toggle("open");return}
