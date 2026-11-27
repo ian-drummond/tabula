@@ -2066,7 +2066,7 @@ function pageData(){
   <div class="panel"><h2>Evernote (manual, optional)</h2><p class="mute">The journal keeps its own data and never writes to Evernote on its own. Use these only when you want to.</p>
   <div class="row"><input id="evq" placeholder="Search Evernote notes to pull in" style="flex:1;min-width:180px"><button data-act="evsearch">Search</button></div><div id="evres"></div>
   <div class="row" style="margin-top:10px"><b>Push a month:</b><input id="snapm" placeholder="YYYY-MM" value="${monthOf(today())}" style="width:100px"><button data-act="snap">Create one Evernote note for that month</button></div></div>
-  <div class="panel"><h2>Import</h2><p class="mute">Restore a full backup: the “Download all” .zip (includes images) or a .json backup. Records with the same id are overwritten; nothing else is deleted.</p><input type="file" id="jsonf" accept=".json,.zip"></div>${window.tabulaSignOut?`<div class="panel"><h2>Account</h2><button data-act="signout">Sign out</button></div>`:""}
+  <div class="panel"><h2>Import</h2><p class="mute">Restore a full backup: the “Download all” .zip (includes images) or a .json backup. Records with the same id are overwritten; nothing else is deleted.</p><input type="file" id="jsonf" accept=".json,.zip"></div>${window.tabulaAccount?`<div class="panel"><h2>Account</h2><p class="mute">Change your password or sign out.</p><button data-act="account">Account Settings…</button></div>`:""}
   <div class="panel"><h2>Status</h2><p class="mute">${S.items.length} items · ${S.people.length} people · ${S.events.length} events · ${S.colls.length} collections · AI ${S.sample?"on":"off"} · connectors ${S.mcp?"on":"off"} · dictation ${S.dict?"on":"off"}</p></div>`;
 }
 /* ---------- shell: sidebar, header, router ---------- */
@@ -2254,6 +2254,7 @@ document.addEventListener("click",async e=>{
     case"prio":S.prioOpen=!S.prioOpen;paintContent();break;
     case"pw":S.pw=el.dataset.v;try{localStorage.setItem("bj-pw",S.pw)}catch(x){}paintTop();break;
     case"signout":if(window.tabulaSignOut)window.tabulaSignOut();break;
+    case"account":if(window.tabulaAccount)window.tabulaAccount.open();break;
     case"mdmode":S.mdMode=S.mdMode==="markdown"?"formatted":"markdown";try{localStorage.setItem("tabula_mdmode",S.mdMode)}catch(e){}S.mdPrev={};S.sumEdit={};paintContent();paintTop();toast(S.mdMode==="markdown"?"Raw Markdown everywhere: fields open as Markdown and titles show their symbols.":"Formatted view: filled fields and titles show formatted. Click any text to edit it.",5000);break;
     case"detmode":S.detailMode=S.detailMode==="none"?"auto":"none";paintContent();paintTop();break;
     case"mday":S.mopen[el.dataset.d]=!S.mopen[el.dataset.d];paintContent();break;
