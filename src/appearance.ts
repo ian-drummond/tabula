@@ -162,6 +162,7 @@ export function open() {
   if (!dialog) {
     dialog = document.createElement("dialog");
     dialog.id = "appearance";
+    dialog.className = "sheet";
     dialog.setAttribute("aria-label", "Appearance");
     document.body.appendChild(dialog);
     dialog.addEventListener("click", (e) => {
