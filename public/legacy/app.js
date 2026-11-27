@@ -34,7 +34,7 @@ const ICON={
  back:'<path d="M13 8H3M7.5 3.5 3 8l4.5 4.5"/>',
  close:'<path d="M4 4l8 8M12 4l-8 8"/>',
  filter:'<path d="M2 4h12M4 8h8M6 12h4"/>',
- view:'<rect x="2" y="2.5" width="12" height="11" rx="2"/><path d="M2 6h12M6 6v7.5"/>',
+ viewopts:'<rect x="2" y="2.5" width="12" height="11" rx="2"/><path d="M2 6h12M6 6v7.5"/>',
  expand:'<path d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/>',
  fwd:'<path d="M3 8h10M8.5 3.5 13 8l-4.5 4.5"/>'
 };
@@ -3591,7 +3591,7 @@ document.addEventListener("click",e=>{
     const fields=fr?[...fr.querySelectorAll("select.pillsel,input.pillsel")]:[];
     const on=fields.filter(x=>x.value);
     if(fr){const b=document.createElement("button");b.className="tbtn"+(st.f?" on":"");b.dataset.act="ctlf";b.setAttribute("aria-expanded",String(!!st.f));b.innerHTML=`${ic("filter")}<span>Filter${on.length?" · "+on.length:""}</span>`;head.appendChild(b)}
-    if(vr){const b=document.createElement("button");b.className="tbtn"+(st.v?" on":"");b.dataset.act="ctlv";b.setAttribute("aria-expanded",String(!!st.v));b.innerHTML=`${ic("view")}<span>View</span>`;head.appendChild(b)}
+    if(vr){const b=document.createElement("button");b.className="tbtn"+(st.v?" on":"");b.dataset.act="ctlv";b.setAttribute("aria-expanded",String(!!st.v));b.innerHTML=`${ic("viewopts")}<span>View</span>`;head.appendChild(b)}
     p.insertBefore(head,p.querySelector(":scope>.ctlr:not(.cshow)"));
     if(on.length){const chips=document.createElement("div");chips.className="ctlchips";
       on.forEach(x=>{const lab=x.tagName==="SELECT"?(x.options[0]&&x.options[0].text)||x.dataset.f:(x.placeholder||"").replace(/…$/,"");const c=document.createElement("span");c.className="chip";c.innerHTML=`${esc(lab)}: <b>${esc(x.dataset.f==="sphere"?sphName(x.value):x.value)}</b><button class="lnk" aria-label="Remove ${esc(lab)} filter">×</button>`;
