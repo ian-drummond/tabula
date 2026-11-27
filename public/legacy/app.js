@@ -33,10 +33,13 @@ const ICON={
  menu:'<path d="M2.5 4h11M2.5 8h11M2.5 12h11"/>',
  back:'<path d="M13 8H3M7.5 3.5 3 8l4.5 4.5"/>',
  close:'<path d="M4 4l8 8M12 4l-8 8"/>',
+ filter:'<path d="M2 4h12M4 8h8M6 12h4"/>',
+ view:'<rect x="2" y="2.5" width="12" height="11" rx="2"/><path d="M2 6h12M6 6v7.5"/>',
  expand:'<path d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/>',
  fwd:'<path d="M3 8h10M8.5 3.5 13 8l-4.5 4.5"/>'
 };
 function ic(n,c){return`<svg class="ic${c?" "+c:""}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[n]||""}</svg>`}
+function sphLabel(sp){return`<i class="dot" style="background:${tintFor("sphere:"+sp)}"></i>${esc(sphName(sp))}`}
 function sphName(sp){return String(sp).replace(/^[\p{Extended_Pictographic}️‍\s]+/u,"")||String(sp)}
 /* ---------- state ---------- */
 const S={imgs:[],assets:null,reveal:{},relTab:"event",orgs:[],items:[],people:[],events:[],colls:[],props:[],views:[],ready:false,db:null,sample:null,mcp:null,dl:null,dict:null,
@@ -290,7 +293,7 @@ function expHtml(it,o){
   const meetH=isEv?`<details class="xs xmeet" data-mid="${id}" ${mOpen?"open":""}><summary><span class="xt">Meeting summary</span><span class="mute dsm">${esc(mStat)}</span></summary><div class="xg">${meetingSec(it)}</div></details>`:"";if(o.meetOnly)return meetH;
   return`<div class="exp${o.insp?" in-insp":""}${o.panel?" in-panel":""}" data-xid="${id}">
    <div class="xhead">${o.panel?"":`<div class="xtr"><textarea class="xtitle" data-f="text" rows="1" aria-label="Title">${esc(it.text)}</textarea></div>`}
-    <div class="xkind">${seg("kind",[["task","Task"],["event","Event"],["note","Note / idea"]],k)}${seg("star",[["0","Normal"],["1","★ Priority"]],it.star?"1":"0")}${k==="task"?seg("status",[["open","Open"],["done","Done"],["dropped","Dropped"]],st):""}${k==="task"?seg("list",[["next","Next"],["waiting","Waiting for"],["someday","Someday"]],listOf(it)):""}${isEv?seg("sub",[["","Event"],["meeting","Meeting"]],it.sub||""):""}<button data-act="sens" class="xsens ${it.sensitive?"on":""}" data-id="${id}" title="${it.sensitive?sensTip(it):"Mark sensitive (money, religion, conflict, health…). It will be hidden in lists until opened."}">🔒 ${it.sensitive?"Sensitive":"Sensitive?"}</button>${it.sensitive?`<button data-act="unreveal" data-id="${id}" class="xsens">Hide again</button>`:""}</div></div>
+    <div class="xg xprops"><label>Type</label><div>${seg("kind",[["task","Task"],["event","Event"],["note","Note"]],k)}</div>${isEv?`<label>Kind</label><div>${seg("sub",[["","Event"],["meeting","Meeting"]],it.sub||"")}</div>`:""}${k==="task"?`<label>Status</label><div>${seg("status",[["open","Open"],["done","Done"],["dropped","Dropped"]],st)}</div><label>List</label><div>${seg("list",[["next","Next"],["waiting","Waiting"],["someday","Someday"]],listOf(it))}</div>`:""}<label>Priority</label><div>${seg("star",[["0","Normal"],["1","Priority"]],it.star?"1":"0")}</div>${it.sensitive?`<label>Sensitive</label><div class="mute dsm">Hidden in lists until opened. <button data-act="unreveal" data-id="${id}" class="lnk">Hide Again</button></div>`:""}</div></div>
    ${o.panel?"":`<div class="xs"><div class="xt">Notes</div><div class="kwrap">${keyHero(it)}<div class="kmain">${noteEditor(it)}</div></div><div class="xg" style="margin-top:8px">${imagesRow(it)}</div></div>`}
    ${o.panel?"":meetH}
    <div class="xs"><div class="xt">When</div><div class="xg">
@@ -377,7 +380,7 @@ function itemsView(items,key,defGroup,opts){
   if(opts.tabs){const tab=S.tabs[key]||"Open";
     h+=`<div class="seg" data-vk="${key}" style="margin:6px 0 8px">${["Open","Done","Dropped"].map(t=>`<button data-act="tab" data-v="${t}" class="${tab===t?"on":""}">${t} <span class="mute">${opts.counts[t]}</span></button>`).join("")}</div>`}
   h+=`<div class="ctlp" data-vk="${key}">${opts.pre?`<div class="ctlr"><div class="ctll">Show</div><div class="ctlc">${opts.pre}</div></div>`:""}<div class="ctlr"><div class="ctll">Filter</div><div class="ctlc"><input data-act="fq" placeholder="Search" value="${esc(q)}" style="width:170px">
-    ${FIELDS.map(([f,l])=>{const o=opt(f);return o.length>12?`<input class="pillsel ${filt[f]?"on":""}" list="fl-${key}-${f}" data-act="filtq" data-f="${f}" placeholder="${l}…" value="${esc(filt[f]||"")}" style="width:${filt[f]?150:110}px"><datalist id="fl-${key}-${f}">${o.map(v=>`<option value="${esc(v)}"></option>`).join("")}</datalist>`:`<select class="pillsel ${filt[f]?"on":""}" data-act="filt" data-f="${f}"><option value="">${l}</option>${o.map(v=>`<option ${filt[f]===v?"selected":""}>${esc(v)}</option>`).join("")}</select>`}).join("")}</div></div><div class="ctlr"><div class="ctll">View</div><div class="ctlc"><div class="seg">${["table","list","board"].map(m=>`<button class="${mode===m?"on":""}" data-act="mode" data-v="${m}">${({table:"▦ Table",list:"≡ List",board:"▥ Board"})[m]}</button>`).join("")}</div>
+    ${FIELDS.map(([f,l])=>{const o=opt(f);return o.length>12?`<input class="pillsel ${filt[f]?"on":""}" list="fl-${key}-${f}" data-act="filtq" data-f="${f}" placeholder="${l}…" value="${esc(filt[f]||"")}" style="width:${filt[f]?150:110}px"><datalist id="fl-${key}-${f}">${o.map(v=>`<option value="${esc(v)}"></option>`).join("")}</datalist>`:`<select class="pillsel ${filt[f]?"on":""}" data-act="filt" data-f="${f}"><option value="">${l}</option>${o.map(v=>`<option ${filt[f]===v?"selected":""}>${esc(v)}</option>`).join("")}</select>`}).join("")}</div></div><div class="ctlr"><div class="ctll">View</div><div class="ctlc"><div class="seg">${["table","list","board"].map(m=>`<button class="${mode===m?"on":""}" data-act="mode" data-v="${m}">${({table:"Table",list:"List",board:"Board"})[m]}</button>`).join("")}</div>
     <span class="mute">${mode==="board"?"Columns":"Group"}</span><select data-act="group"><option value="">${mode==="board"?"Status":"No grouping"}</option>${FIELDS.map(([f,l])=>`<option value="${f}" ${group===f?"selected":""}>${l}</option>`).join("")}</select>
     <span class="mute">Sort</span><select data-act="sortf">${SORTS.map(([f,l])=>`<option value="${f}" ${sort.f===f?"selected":""}>${l}</option>`).join("")}</select><button data-act="sortdir">${sort.d>0?"↑":"↓"}</button>
     <button data-act="fields">Fields</button><span class="sp"></span><span class="mute" id="cnt-${key}"></span><button data-act="more">⋯</button></div></div></div>`;
@@ -425,7 +428,7 @@ function pageList(k){
   if(L.tabs){const c={Open:0,Done:0,Dropped:0};all.forEach(i=>c[({open:"Open",done:"Done",dropped:"Dropped"})[i.status||"open"]]++);
     const tab=S.tabs[key]||"Open";items=all.filter(i=>fieldVals(i,"status")[0]===tab);opts={tabs:1,counts:c}}
   const sub=typeof L.sub==="function"?L.sub():L.sub;
-  const tq=k==="notes"?"":[["today","🌞","Due today"],["week","📆","This week"],["next","⏭️","Next week"],["prio","❗","Priorities"],["overdue","⏳","Overdue"],["lnext","🎯","Next actions"],["lwait","🕰️","Waiting for"],["lsome","💭","Someday"],["tasks","☑️","All tasks"]].map(([v,e,l])=>{const n=V().filter(LISTS[v].base).filter(i=>v==="tasks"?isOpen(i):true).length;return`<a href="#list:${v}" class="${k===v?"on":""}">${e} ${l} <span class="mute">${n}</span></a>`}).join("");
+  const tq=k==="notes"?"":[["today","Due today"],["week","This week"],["next","Next week"],["prio","Priorities"],["overdue","Overdue"],["lnext","Next actions"],["lwait","Waiting for"],["lsome","Someday"],["tasks","All tasks"]].map(([v,l])=>{const n=V().filter(LISTS[v].base).filter(i=>v==="tasks"?isOpen(i):true).length;return`<a href="#list:${v}" class="${k===v?"on":""}">${l} <span class="mute">${n}</span></a>`}).join("");
   if(tq)opts.pre=`<div class="seg">${tq}</div>`;
   return`<p class="mute" style="margin:0 0 4px">${esc(sub)} · ${items.length} item${items.length===1?"":"s"}</p>`+quickBar()+itemsView(items,key,L.group||"",opts);
 }
@@ -584,10 +587,10 @@ function guessEtype(it){const t=((it.text||"")+" "+(it.detail||"").slice(0,200))
 function evTtl(it,c,dl,o){
   const wo=whoseOf(it)==="other",wp=whoPersonOf(it);
   const sensH=it.sensitive?`<span class="sens" title="${sensTip(it)}">🔒 </span>`:"";
-  const etbH=it.etype?`<span class="etb ${it.etypeAuto?"g":""}" title="${esc(etL(it.etype))}${it.etypeAuto?" (guessed)":""}">${etE(it.etype)} ${dl==="compact"?"":esc(etL(it.etype))}</span>`:"";
+  const etbH=it.etype?`<span class="etb ${it.etypeAuto?"g":""}" title="${esc(etL(it.etype))}${it.etypeAuto?" (guessed)":""}">${esc(etL(it.etype))}</span>`:"";
   const notesH=!o.nonotes&&evNotes(it).length?`<span class="cb" data-act="edit" title="Notes attached to this event">✎ ${evNotes(it).length}</span>`:"";
   const dateH=o.showDate?` <span class="mute dsm">${esc(rel(it.date))}</span>`:"";
-  const sphH=it.sphere?`<span class="etb" title="${esc(it.sphere)}">${esc(it.sphere)}</span>`:"";
+  const sphH=it.sphere?`<span class="etb">${sphLabel(it.sphere)}</span>`:"";
   const whoH=`<span class="wb ${wo?"o":"m"}" data-act="togwhose" role="button" aria-label="Toggle mine / not mine" title="${wo?"Not mine"+(it.whose?"":" (guessed from the title)")+" — click to mark as mine":"Mine"+(it.whose?"":" (assumed)")+" — click to mark as not mine"}">${wo?SVGI.userO:SVGI.userM}</span>`;
   const ttl=`<span data-act="edit">${mdTitle(it,c.t)}</span>`;
   if(o.grid)return`<div class="ttl eg"><span class="tm">${c.time?esc(c.time):""}</span><span class="tc">${sensH}${ttl}${notesH}${dateH}</span><span class="bd"><span class="wcol">${whoH}</span><span class="tcol">${o.sph?sphH:o.notype?"":etbH}</span></span></div>`;
@@ -689,10 +692,12 @@ const TRI={chase:{t:"Waiting for: time to chase",d:"Nudge the person, then push 
  prio:{t:"Too many priorities",d:"More than "+CAP+" starred on a day. Un-star, move or finish some.",f:()=>{const days=[...new Set(V().filter(i=>isOpen(i)&&i.star).map(i=>i.date))].filter(d=>V().filter(i=>isOpen(i)&&i.star&&i.date===d).length>CAP);return V().filter(i=>isOpen(i)&&i.star&&days.includes(i.date))}}};
 function openTriage(k){const T=TRI[k];if(!T)return;S.triK=k;
   const list=T.f().sort((a,b)=>(tday(a)).localeCompare(tday(b)));
-  openModal(`<h3 style="margin-top:0">${T.t} <span class="mute">${list.length}</span></h3><p class="mute" style="margin:0 0 8px">${T.d}</p>
-   <div id="trl" style="max-height:60vh;overflow:auto">${list.length?list.map(i=>`<div class="trr" data-id="${esc(i.id)}"><div class="trt"><b>${i.star?"★ ":""}${esc(safeTitle(i))}</b><div class="mute dsm">${esc(shortDate(tday(i)))}${carriedN(i)?" · migrated "+carriedN(i)+"×":""} · ${esc((i.sphere||"").replace(/^\S+\s/,""))}</div></div>
-    <div class="tra"><button data-tz="done" title="Mark done">✓ Done</button><button data-tz="today" title="Move to today">↪ Today</button><button data-tz="tmr" title="Move to tomorrow">→ Tomorrow</button><input type="date" data-tz="date" title="Pick a new date">${k==="chase"?`<button data-tz="chase" title="Chased; check back in a week">📨 Chased, +7d</button>`:""}${k==="stale"?`<button data-tz="someday">💭 Someday</button><button data-tz="waiting">⏳ Waiting</button>`:""}<button data-tz="star" title="Toggle priority">${i.star?"☆ Un-star":"★ Star"}</button><button data-tz="drop" class="warn" title="Drop this task">✕ Drop</button><button class="lnk" data-tz="open" title="Open it">Open</button></div></div>`).join(""):`<p>All clear. 🎉</p>`}</div>
-   <div class="row" style="margin-top:10px">${list.length?`<button data-tz="alltoday">↪ Move all to today</button>`:""}<span class="sp"></span><button class="pri" data-tz="close">Close</button></div>`);
+  openModal(`<div class="sheet-h"><h3>${T.t} <span class="mute">${list.length}</span></h3><p class="mute">${T.d}</p></div>
+   <div id="trl">${list.length?list.map(i=>`<div class="trr" data-id="${esc(i.id)}"><div class="trt"><span class="trn">${i.star?'<span class="star">★</span> ':""}${esc(safeTitle(i))}</span><div class="mute dsm">${esc(shortDate(tday(i)))} · ${esc(sphName(i.sphere||DEFAULT_SPHERE))}${carriedN(i)?" · Moved "+carriedN(i)+"×":""}</div></div>
+    <div class="tra"><button data-tz="done">Done</button><button data-tz="today">Today</button>${k==="chase"?`<button data-tz="chase" title="Chased; check back in a week">Chased</button>`:""}<span class="mwrap"><button class="tbi" data-act="imenu" title="More" aria-label="More actions" aria-haspopup="menu">${ic("more")}</button><div class="menu imenu" role="menu">
+     <button data-tz="tmr" role="menuitem">Tomorrow</button><label class="mdate">Pick a Date <input type="date" data-tz="date" aria-label="Pick a new date"></label>
+     ${k==="stale"?`<button data-tz="someday" role="menuitem">Move to Someday</button><button data-tz="waiting" role="menuitem">Move to Waiting For</button>`:""}<button data-tz="star" role="menuitem">${i.star?"Remove Priority":"Make Priority"}</button><button data-tz="open" role="menuitem">Open</button><hr><button data-tz="drop" role="menuitem" class="red">Drop</button></div></span></div></div>`).join(""):`<p class="mute">All clear.</p>`}</div>
+   <div class="sh-f">${list.length?`<button data-tz="alltoday">Move All to Today</button>`:""}<span class="sp"></span><button class="pri" data-tz="close">Done</button></div>`);
   const box=g("mbox");
   const act=async(btn)=>{const k2=btn.dataset.tz,row=btn.closest(".trr"),it=row&&S.items.find(i=>i.id===row.dataset.id);
     if(k2==="close"){closeModal();return}
@@ -718,7 +723,7 @@ function taskGroups(tasks,days,range,doneList){
   S.sorts.daily=S.sorts.daily||{f:"star",d:1};
   const lab=k=>/^\d{4}-\d\d-\d\d$/.test(k)?longDate(k):k,nw=k=>k===today()?" now":"";
   if(!grp)return sortItems(tasks.slice(),"daily").map(i=>itemRow(i,{showDate:1})).join("")+tail;
-  return groupOf(tasks,grp,"daily").map(([k,a])=>`<div class="sub${nw(k)}">${esc(lab(k))} · ${a.length}</div>`+a.map(i=>itemRow(i,{showDate:grp!=="due"})).join("")).join("")+tail;
+  return groupOf(tasks,grp,"daily").map(([k,a])=>`<div class="sub${nw(k)}">${grp==="sphere"?sphLabel(k):esc(lab(k))} · ${a.length}</div>`+a.map(i=>itemRow(i,{showDate:grp!=="due"})).join("")).join("")+tail;
 }
 function pageDaily(){
   const d=S.date,days=dayList(S.range,d),a=days[0],b=days[days.length-1];
@@ -731,14 +736,13 @@ function pageDaily(){
   const props=S.props.filter(p=>p.status==="pending"&&p.date>=a&&p.date<=b);
   const trail=S.range==="day"?V().filter(i=>i.kind==="task"&&(i.history||[]).includes(d)&&tday(i)!==d):[];
   const title=S.range==="day"?dlabel(d):shortDate(a)+" – "+shortDate(b);
-  let h=`<div class="row">${S.range==="day"?"":`<div class="seg">${[["week","This week"],["next","Next week"]].map(([k,l])=>`<button data-act="range" data-v="${k}" class="${S.range===k?"on":""}">${l}</button>`).join("")}</div>`}
-   <button data-act="day" data-n="-1">‹</button>${S.range==="day"?"":`<b style="font-size:1.05rem">${esc(title)}</b>`}<button data-act="day" data-n="1">›</button><input type="date" value="${d}" data-act="pickday"><button data-act="day" data-n="0">Today</button>${d===today()&&S.range!=="next"?`<span class="chip dsk" style="background:var(--accbg);color:var(--acc)">Today</span>`:""}
-   <span class="mute">Week ${weekNo(d)} · <a href="#month:${monthOf(d)}">${monthLog(d)}</a></span><span class="sp"></span>${S.range==="day"?prioChip(d):""}</div>
-   <div class="row" style="margin:8px 0"><button class="pri" data-act="setup" data-d="${d}">${V().some(i=>i.date===d)?"Review "+(d===today()?"today":shortDate(d)):"Set up "+(d===today()?"today":shortDate(d))}</button><button data-act="backfill">Add or import info</button>${S.busy?`<span class="mute">⏳ ${esc(S.busy)}</span>`:""}</div>`;
-  h+=attStrip()+(S.prioOpen&&S.range==="day"?prioPanel(d):"");
-  if(props.length)h+=`<div class="strip"><span class="sg hot" data-go="review">📥 ${props.length} proposed for ${S.range==="day"?"this day":"this range"}</span></div>`;
+  /* day bar (docs/DESIGN.md): step through days, jump to a date; the toolbar owns Day/Week/Month/Year */
+  let h=`<div class="daybar"><span class="seg"><button data-act="day" data-n="-1" title="Previous day" aria-label="Previous day">${ic("chev","flip")}</button><button data-act="day" data-n="0">Today</button><button data-act="day" data-n="1" title="Next day" aria-label="Next day">${ic("chev")}</button></span>
+   <input type="date" class="dpick" value="${d}" data-act="pickday" aria-label="Go to a date">${S.range==="day"?"":`<b class="drange">${esc(title)}</b><span class="seg">${[["week","This week"],["next","Next week"]].map(([k,l])=>`<button data-act="range" data-v="${k}" class="${S.range===k?"on":""}">${l}</button>`).join("")}</span>`}
+   <span class="mute">Week ${weekNo(d)} · <a href="#month:${monthOf(d)}">${monthLog(d)}</a></span><span class="sp"></span>${S.range==="day"?prioChip(d):""}${S.busy?`<span class="mute">${esc(S.busy)}</span>`:""}</div>`;
+  h+=attStrip(d,props.length)+(S.prioOpen&&S.range==="day"?prioPanel(d):"");
   const lb=layoutBody({evs,evsAll,tasks,done,notes,days});
-  h+=`<div class="row dlay ${S.mctl?"mopen":""}" style="margin:4px 0 8px"><span class="mute dsk">Layout</span><div class="seg">${[["cols","▥ Columns"],["sphere","◧ By sphere"],["flow","⋮ Timeline"]].map(([k,l])=>`<button data-act="layout" data-v="${k}" class="${(S.layout||"cols")===k?"on":""}">${l}</button>`).join("")}</div>${S.layout==="flow"?"":`<button class="mob mtog" data-act="mctl">${S.mctl?"Hide ▴":"Sort ▾"}</button><span class="dctl">${S._ctl}</span>`}</div>`;
+  h+=`<div class="ctlp" data-vk="daily"><div class="ctlr"><div class="ctll">View</div><div class="ctlc"><span class="mute">Layout</span><div class="seg">${[["cols","Columns"],["sphere","By Sphere"],["flow","Timeline"]].map(([k,l])=>`<button data-act="layout" data-v="${k}" class="${(S.layout||"cols")===k?"on":""}">${l}</button>`).join("")}</div>${S.layout==="flow"?"":S._ctl}</div></div></div>`;
   h+=lb;
   if(trail.length)h+=`<label class="mute"><input type="checkbox" data-act="trail" ${S.trail?"checked":""}> Show ${trail.length} task${trail.length>1?"s":""} migrated away from this day (history only) (not counted)</label>`+(S.trail?`<div class="panel">${trail.map(i=>`<div class="it"><span class="gl">↪</span><div class="mid"><div class="ttl" style="color:var(--mute)">${esc(i.text)}</div><div class="dt">now on <a href="#day:${esc(i.date)}">${esc(i.date)}</a></div></div></div>`).join("")}</div>`:"");
   return h;
@@ -1239,14 +1243,20 @@ function maintCats(){
   if(dyn)L.push({id:"colls",em:"✨",title:"Collections to refresh",sub:"Dynamic collections not swept in 30+ days.",n:dyn,go:"colls"});
   return L;
 }
-function revRow(c){if(c.err)return`<div class="nrow"><span class="nem">${c.em}</span><div class="nmid"><b>${esc(c.title)}</b><div class="mute" style="white-space:normal">${esc(c.sub)}</div></div></div>`;const tgt=c.go?`data-go="${esc(c.go)}"`:c.mrev?`data-act="mrev" data-c="${c.mrev}"`:`data-act="${c.act}"${c.k?` data-k="${c.k}"`:""}`;
-  return`<div class="nrow"><span class="nem">${c.em}</span><div class="nmid"><b>${esc(c.title)}</b><div class="mute">${esc(c.sub)}</div></div><span class="nnum">${c.n}</span><button ${tgt}>Review</button><button class="lnk" data-act="mign" data-c="${c.id}" title="Hide this for 14 days">Ignore</button></div>`}
-function attStrip(){
+function revRow(c){if(c.err)return`<div class="nrow"><div class="nmid"><b>${esc(c.title)}</b><div class="mute" style="white-space:normal">${esc(c.sub)}</div></div></div>`;const tgt=c.go?`data-go="${esc(c.go)}"`:c.mrev?`data-act="mrev" data-c="${c.mrev}"`:`data-act="${c.act}"${c.k?` data-k="${c.k}"`:""}`;
+  return`<div class="nrow"><div class="nmid"><b>${esc(c.title)}</b><div class="mute">${esc(c.sub)}</div></div><span class="nnum">${c.n}</span><button ${tgt}>Review</button><button class="lnk" data-act="mign" data-c="${c.id}" title="Hide this for 14 days">Ignore</button></div>`}
+function attStrip(d,nProps){
+  /* one quiet banner instead of two panels (docs/DESIGN.md: summary before detail) */
+  d=d||today();
   const att=attentionItems().filter(x=>!(x.act==="setup"&&!x.daily)&&x.act!=="dupes"&&!(x.act==="triage"&&x.k==="stale")&&x.go!=="colls");
   const all=maintCats(),rev=all.filter(c=>!mSnoozed(c.id)),snz=all.length-rev.length,o=S.dpan;
-  const head=(k,t,n)=>`<h2 data-act="dpan" data-k="${k}"><span class="tg">${o[k]?"▾":"▸"}</span>${t} <span class="c">${n}</span></h2>`;
-  return`<div class="dpair"><div class="panel tint dp" style="--tc:#f59e0b">${head("att","Needs your attention",att.length)}${o.att?`<div class="dpb">${att.length?`<div class="tiles">${att.map(attTile).join("")}</div>`:`<div class="dpok">✓ Nothing needs you right now.</div>`}</div>`:""}</div>
-   <div class="panel tint dp" style="--tc:#3b5ba5">${head("rev","Needs review",rev.length)}${o.rev?`<div class="dpb">${rev.length?rev.map(revRow).join(""):`<div class="dpok">✓ Nothing to review.</div>`}${snz?`<div class="mute dsm" style="margin-top:6px">${snz} hidden for now · <button class="lnk" data-act="mrestore">show</button></div>`:""}</div>`:""}</div></div>`;
+  const chip=x=>`<button class="att-i${x.hot?" hot":""}" ${x.go?`data-go="${esc(x.go)}"`:`data-act="${x.act}"${x.d?` data-d="${x.d}"`:""}${x.k?` data-k="${x.k}"`:""}`} title="${esc(x.sub||"")}">${x.n!=null?`<b>${x.n}</b>`:""}${esc(x.title)}</button>`;
+  const bits=att.map(chip);
+  if(nProps)bits.push(`<button class="att-i" data-go="review"><b>${nProps}</b>Proposed</button>`);
+  if(rev.length)bits.push(`<button class="att-i${o.rev?" on":""}" data-act="dpan" data-k="rev" aria-expanded="${!!o.rev}"><b>${rev.length}</b>To review</button>`);
+  const label=V().some(i=>i.date===d)?"Review "+(d===today()?"Today":shortDate(d)):"Set Up "+(d===today()?"Today":shortDate(d));
+  return`<div class="att${bits.length?"":" calm"}"><div class="att-l">${bits.length?bits.join(""):`<span class="mute">Nothing needs you right now.</span>`}</div><button data-act="setup" data-d="${d}">${label}</button></div>`
+   +(o.rev&&rev.length?`<div class="panel att-rev">${rev.map(revRow).join("")}${snz?`<div class="mute dsm" style="margin-top:6px">${snz} hidden for now · <button class="lnk" data-act="mrestore">Show</button></div>`:""}</div>`:"");
 }
 function openMaint(id){
   const M=MAINT[id];if(!M)return;S._mm=null;const res=maintRun()[id]||{rows:[]};S._mf={};res.rows.forEach(r=>S._mf[r.key]=r);
@@ -1846,7 +1856,7 @@ function eventsPage(){
    ${collNames.length?`<input class="pillsel ${E.coll?"on":""}" list="ev-cl" data-act="evin" data-k="coll" placeholder="Collection…" value="${esc(E.coll)}" style="width:120px"><datalist id="ev-cl">${collNames.map(n=>`<option value="${esc(n)}"></option>`).join("")}</datalist>`:""}
    <select class="pillsel ${E.sphere?"on":""}" data-act="evsel" data-k="sphere"><option value="">Sphere</option>${SPHERES.map(x=>`<option ${E.sphere===x?"selected":""}>${esc(x)}</option>`).join("")}</select>
    <select class="pillsel ${E.whose?"on":""}" data-act="evsel" data-k="whose"><option value="">Whose</option><option value="mine" ${E.whose==="mine"?"selected":""}>Mine</option><option value="other" ${E.whose==="other"?"selected":""}>Others'</option></select></div></div>
-  <div class="ctlr"><div class="ctll">View</div><div class="ctlc"><div class="seg">${["list","table","board"].map(m=>`<button class="${E.mode===m?"on":""}" data-act="evset" data-k="mode" data-v="${m}">${({table:"▦ Table",list:"≡ List",board:"▥ Board"})[m]}</button>`).join("")}</div>
+  <div class="ctlr"><div class="ctll">View</div><div class="ctlc"><div class="seg">${["list","table","board"].map(m=>`<button class="${E.mode===m?"on":""}" data-act="evset" data-k="mode" data-v="${m}">${({table:"Table",list:"List",board:"Board"})[m]}</button>`).join("")}</div>
    <span class="mute">Group</span>${sel("group",[["day","Day"],["week","Week"],["month","Month"],["type","Type"],["sphere","Sphere"],["person","Person"],["","None"]])}
    <button data-act="evdir">${E.dir>0?"Earliest first":"Latest first"}</button>
    <span class="mute">Detail</span>${sel("detail",[["compact","Less"],["normal","Normal"],["full","More"]])}
@@ -1885,10 +1895,10 @@ function flowList(items,day){
   return`<div class="flowlist" data-day="${day}">`+arr.map(i=>`<div class="flowrow" draggable="true" data-fid="${esc(i.id)}"><span class="grip" title="Drag to reorder">⋮⋮</span><div class="fr">${i.kind==="event"?evRow(i,{noDetail:0}):itemRow(i)}</div></div>`).join("")+`</div>`;
 }
 function layoutBody(c){
-  const{evs,evsAll,tasks,done,notes,days}=c;const addBtn=k=>`<button class="lnk" data-act="addin" data-k="${k}">+ Add</button>`;
+  const{evs,evsAll,tasks,done,notes,days}=c;const addBtn=k=>`<button class="lnk" data-act="addin" data-k="${k}">Add</button>`;
   const addRow=(k,ph)=>S.addIn===k?`<div class="quick"><input class="qa" data-kind="${k}" data-autofocus placeholder="${ph}" autocomplete="off"><button class="pri" data-act="qadd">Add</button><button data-act="addin" data-k="${k}">Cancel</button></div>`:"";
   const nowc=x=>x===today()?" now":"";
-  const ctl=`<span class="mute" style="margin-left:6px">Group</span><select data-act="dgroup">${GROUPS.filter(([v])=>S.layout!=="sphere"||v!=="sphere").map(([v,l])=>`<option value="${v}" ${(S.layout==="sphere"?((S.dgroup&&S.dgroup!=="sphere")?S.dgroup:""):(S.dgroup!=null?S.dgroup:(S.range==="day"?"sphere":"due")))===v?"selected":""}>${l}</option>`).join("")}</select><span class="mute">Sort</span><select data-act="dsort">${SORTS.map(([f,l])=>`<option value="${f}" ${((S.sorts.daily||{f:"star"}).f)===f?"selected":""}>${l}</option>`).join("")}</select><button data-act="dsortdir">${(S.sorts.daily||{d:1}).d>0?"↑":"↓"}</button><button class="${S.doneBottom?"pillsel on":""}" data-act="donebot" title="Move completed tasks to the bottom">✕ Done at bottom</button>`;
+  const ctl=`<span class="mute" style="margin-left:6px">Group</span><select data-act="dgroup">${GROUPS.filter(([v])=>S.layout!=="sphere"||v!=="sphere").map(([v,l])=>`<option value="${v}" ${(S.layout==="sphere"?((S.dgroup&&S.dgroup!=="sphere")?S.dgroup:""):(S.dgroup!=null?S.dgroup:(S.range==="day"?"sphere":"due")))===v?"selected":""}>${l}</option>`).join("")}</select><span class="mute">Sort</span><select data-act="dsort">${SORTS.map(([f,l])=>`<option value="${f}" ${((S.sorts.daily||{f:"star"}).f)===f?"selected":""}>${l}</option>`).join("")}</select><button data-act="dsortdir">${(S.sorts.daily||{d:1}).d>0?"↑":"↓"}</button><button class="${S.doneBottom?"on":""}" data-act="donebot" aria-pressed="${!!S.doneBottom}" title="Move completed tasks to the bottom">Done at Bottom</button>`;
   S._ctl=ctl;
   const evTimeSort=a=>a.slice().sort((x,y)=>x.date.localeCompare(y.date)||((timeMin(cleanTitle(x).time)??9999)-(timeMin(cleanTitle(y).time)??9999)));
   if(S.layout==="flow"){
@@ -1908,7 +1918,7 @@ function layoutBody(c){
       const tot=e.length+t.length+d.length+n.length;
       const adding=S.addIn&&S.addIn.startsWith("sph|"+sp+"|");
       if(!tot&&!adding)return;
-      h+=`<div class="panel tint" style="--tc:${tintFor("sphere:"+sp)}"><h2>${esc(sp)} <span class="c">${tot}</span><span class="sp"></span>${["task","event","note"].map(k=>`<button class="lnk" data-act="sphadd" data-s="${esc(sp)}" data-k="${k}">+ ${k[0].toUpperCase()+k.slice(1)}</button>`).join("")}${tintSw("sphere:"+sp)}</h2>${adding?`<div class="quick"><input class="qa" data-kind="${S.addIn.split("|")[2]}" data-sphere="${esc(sp)}" data-autofocus placeholder="Add a ${S.addIn.split("|")[2]} to ${esc(sp)}" autocomplete="off"><button class="pri" data-act="qadd">Add</button><button data-act="sphadd" data-s="${esc(sp)}" data-k="${S.addIn.split("|")[2]}">Cancel</button></div>`:""}`;
+      h+=`<div class="panel tint" style="--tc:${tintFor("sphere:"+sp)}"><h2>${esc(sphName(sp))} <span class="c">${tot}</span><span class="sp"></span>${["task","event","note"].map(k=>`<button class="lnk" data-act="sphadd" data-s="${esc(sp)}" data-k="${k}">+ ${k[0].toUpperCase()+k.slice(1)}</button>`).join("")}${tintSw("sphere:"+sp)}</h2>${adding?`<div class="quick"><input class="qa" data-kind="${S.addIn.split("|")[2]}" data-sphere="${esc(sp)}" data-autofocus placeholder="Add a ${S.addIn.split("|")[2]} to ${esc(sp)}" autocomplete="off"><button class="pri" data-act="qadd">Add</button><button data-act="sphadd" data-s="${esc(sp)}" data-k="${S.addIn.split("|")[2]}">Cancel</button></div>`:""}`;
       if(e.length)h+=`<div class="sub">Events · ${e.length}</div>`+evTimeSort(e).map(i=>evRow(i,{showDate:S.range!=="day",grid:1,notype:1,nonotes:1})).join("");
       if(t.length||d.length){h+=`<div class="sub">Tasks · ${t.length}${d.length?" · "+d.length+" done":""}</div>`;
         const old=S.dgroup;S.dgroup=grp;h+=taskGroups(S.doneBottom?t:[...t,...d],days,S.range,S.doneBottom?d:[]).replace('<p class="mute">Nothing open.</p>','');S.dgroup=old}
@@ -1918,10 +1928,10 @@ function layoutBody(c){
   }
   const evHtml=evs.length?(S.range==="day"?evs.map(i=>evRow(i,{grid:1,sph:1,nonotes:1})).join(""):days.map(x=>{const q=evs.filter(e=>e.date===x);return q.length?`<div class="sub${nowc(x)}">${esc(longDate(x))}</div>`+q.map(i=>evRow(i,{grid:1,sph:1,nonotes:1})).join(""):""}).join("")):`<p class="mute">${evsAll.length?"No events match these filters.":"No events logged. Add one, or set up the day from your calendars."}</p>`;
   const wideEv=evs.some(e=>S.expanded[e.id]),wideTk=[...tasks,...done].some(e=>S.expanded[e.id]);
-  let h=`<div class="cols2"><div class="panel tint" style="--tc:${tintFor("events")}${wideEv?";grid-column:1/-1":""}"><h2>Events <span class="c">${evs.length}${evs.length!==evsAll.length?" of "+evsAll.length:""}</span><span class="sp"></span>${addBtn("event")}${tintSw("events")}</h2>${evfBar(evsAll)}${addRow("event","e.g. Lunch with Chris tomorrow at noon")}${evHtml}</div>
-   <div class="panel tint" style="--tc:${tintFor("tasks")}${wideTk?";grid-column:1/-1":""}"><h2>Tasks <span class="c">${tasks.length}</span>${done.length?` <span class="mute" style="font-size:.8em;font-weight:400">${done.length} done</span>`:""}<span class="sp"></span>${addBtn("task")}<button class="lnk" data-go="list:tasks">All tasks</button>${tintSw("tasks")}</h2>${addRow("task","e.g. Send the Hackett follow-up by Friday")}${taskGroups(S.doneBottom?tasks:[...tasks,...done],days,S.range,S.doneBottom?done:[])}</div></div>`;
-  let nh="";if(notes.length){bySphere(notes).forEach((arr,s)=>{if(arr.length)nh+=`<div class="sub">${esc(s)} · ${arr.length}</div>`+arr.map(i=>itemRow(i,{showDate:S.range!=="day"})).join("")})}
-  return h+`<div class="panel tint" style="--tc:${tintFor("notes")}"><h2>Notes &amp; ideas <span class="c">${notes.length}</span><span class="sp"></span>${addBtn("note")}${tintSw("notes")}</h2>${addRow("note","A thought, idea or reflection")}${nh||`<p class="mute">No notes or ideas for this ${S.range==="day"?"day":"range"} yet.</p>`}</div>`;
+  let h=`<div class="cols2"><div class="panel"${wideEv?' style="grid-column:1/-1"':""}><h2>Events <span class="c">${evs.length}${evs.length!==evsAll.length?" of "+evsAll.length:""}</span><span class="sp"></span>${addBtn("event")}</h2>${evfBar(evsAll)}${addRow("event","e.g. Lunch with Chris tomorrow at noon")}${evHtml}</div>
+   <div class="panel"${wideTk?' style="grid-column:1/-1"':""}><h2>Tasks <span class="c">${tasks.length}</span>${done.length?` <span class="mute" style="font-size:.8em;font-weight:400">${done.length} done</span>`:""}<span class="sp"></span>${addBtn("task")}<button class="lnk" data-go="list:tasks">All Tasks</button></h2>${addRow("task","e.g. Send the Hackett follow-up by Friday")}${taskGroups(S.doneBottom?tasks:[...tasks,...done],days,S.range,S.doneBottom?done:[])}</div></div>`;
+  let nh="";if(notes.length){bySphere(notes).forEach((arr,s)=>{if(arr.length)nh+=`<div class="sub">${sphLabel(s)} · ${arr.length}</div>`+arr.map(i=>itemRow(i,{showDate:S.range!=="day"})).join("")})}
+  return h+`<div class="panel"><h2>Notes &amp; ideas <span class="c">${notes.length}</span><span class="sp"></span>${addBtn("note")}</h2>${addRow("note","A thought, idea or reflection")}${nh||`<p class="mute">No notes or ideas for this ${S.range==="day"?"day":"range"} yet.</p>`}</div>`;
 }
 /* drag to reorder in the timeline */
 (function(){
@@ -1970,7 +1980,7 @@ function personList(){
   arr.sort(sorters[P.sort]||sorters.name);if(P.dir<0)arr.reverse();
   const counts={Work:0,Personal:0,_none:0};S.people.forEach(p=>{const l=ptList(p);if(!l.length)counts._none++;l.forEach(a=>counts[a]++)});
   let h=`<div class="row"><span class="mute">${arr.length} of ${S.people.length} people</span><span class="sp"></span><button data-go="cleanup">🧹 Clean up / review</button><button class="pri" data-act="newent" data-k="person">+ New person</button></div>
-  <div class="ctlp"><div class="ctlr"><div class="ctll">Show</div><div class="ctlc"><button class="pillsel ${P.ptype?"":"on"}" data-act="ptfilt" data-v="">All <span class="mute">${S.people.length}</span></button>${[["Work","💼 Work"],["Personal","🏠 Personal"],["_none","Untyped"]].filter(([v])=>counts[v]).map(([v,l])=>`<button class="pillsel ${P.ptype===v?"on":""}" data-act="ptfilt" data-v="${v}">${l} <span class="mute">${counts[v]}</span></button>`).join("")}</div></div><div class="ctlr"><div class="ctll">Filter</div><div class="ctlc"><input data-act="pq" placeholder="Search people" value="${esc(P.q)}" style="width:190px"><select class="pillsel ${P.rel?"on":""}" data-act="pfsel" data-k="rel"><option value="">Relationship</option>${allRels().map(x=>`<option ${P.rel===x?"selected":""}>${esc(x)}</option>`).join("")}</select><select class="pillsel ${P.org?"on":""}" data-act="pfsel" data-k="org"><option value="">Organization</option>${[...new Set(S.people.map(p=>p.company).filter(Boolean))].sort().map(x=>`<option ${P.org===x?"selected":""}>${esc(x)}</option>`).join("")}</select></div></div><div class="ctlr"><div class="ctll">View</div><div class="ctlc"><div class="seg">${["list","table","board"].map(m=>`<button class="${P.mode===m?"on":""}" data-act="pmode" data-v="${m}">${({table:"▦ Table",list:"≡ List",board:"▥ Board"})[m]}</button>`).join("")}</div>
+  <div class="ctlp"><div class="ctlr"><div class="ctll">Show</div><div class="ctlc"><button class="pillsel ${P.ptype?"":"on"}" data-act="ptfilt" data-v="">All <span class="mute">${S.people.length}</span></button>${[["Work","💼 Work"],["Personal","🏠 Personal"],["_none","Untyped"]].filter(([v])=>counts[v]).map(([v,l])=>`<button class="pillsel ${P.ptype===v?"on":""}" data-act="ptfilt" data-v="${v}">${l} <span class="mute">${counts[v]}</span></button>`).join("")}</div></div><div class="ctlr"><div class="ctll">Filter</div><div class="ctlc"><input data-act="pq" placeholder="Search people" value="${esc(P.q)}" style="width:190px"><select class="pillsel ${P.rel?"on":""}" data-act="pfsel" data-k="rel"><option value="">Relationship</option>${allRels().map(x=>`<option ${P.rel===x?"selected":""}>${esc(x)}</option>`).join("")}</select><select class="pillsel ${P.org?"on":""}" data-act="pfsel" data-k="org"><option value="">Organization</option>${[...new Set(S.people.map(p=>p.company).filter(Boolean))].sort().map(x=>`<option ${P.org===x?"selected":""}>${esc(x)}</option>`).join("")}</select></div></div><div class="ctlr"><div class="ctll">View</div><div class="ctlc"><div class="seg">${["list","table","board"].map(m=>`<button class="${P.mode===m?"on":""}" data-act="pmode" data-v="${m}">${({table:"Table",list:"List",board:"Board"})[m]}</button>`).join("")}</div>
    <span class="mute">Group</span><select data-act="pgroup">${[["","None"],["type","Type"],["rel","Relationship"],["company","Organization"],["letter","Last-name letter"],["open","Open tasks"]].map(([v,l])=>`<option value="${v}" ${(P.group||"")===v?"selected":""}>${l}</option>`).join("")}</select><span class="mute">Sort</span><select data-act="psort">${[["name","Last name"],["type","Type"],["items","Most mentioned"],["company","Organization"]].map(([v,l])=>`<option value="${v}" ${P.sort===v?"selected":""}>${l}</option>`).join("")}</select><button data-act="pdir">${P.dir<0?"↓":"↑"}</button><span class="sp"></span><span class="mute">${arr.length} of ${S.people.length}</span></div></div></div>`;
   const ms=mergeSuggest();
   if(ms.length&&!P.q)h+=`<div class="panel"><h2>Possible duplicates <span class="c">${ms.length}</span></h2>${ms.map(([a,b])=>`<div class="row" style="margin:3px 0"><span>${esc(a.name)} <span class="mute">→</span> <b>${esc(b.name)}</b></span><span class="sp"></span><button data-act="pmerge" data-from="${esc(a.id)}" data-to="${esc(b.id)}">Merge</button></div>`).join("")}</div>`;
@@ -2238,7 +2248,7 @@ function paintTop0(){
     +mi("mdmode","Show raw Markdown",S.mdMode==="markdown")
     +`<hr class="dsk">`+[["n","Narrow page"],["m","Medium page"],["w","Wide page"]].map(([v,l])=>mi("pw",l,pw===v,` data-v="${v}" class="dsk"`)).join("")
     +`<hr class="mob">`+mi("density","Compact rows",dc,` data-v="toggle" class="mob"`)
-    +`<hr>`+mi("exportmd","Export…")+`</div>`;
+    +`<hr>`+(S.view==="daily"?mi("backfill","Add or Import Info…"):"")+mi("exportmd","Export…")+`</div>`;
   paintBnav();
 }
 function route(){
@@ -3566,16 +3576,33 @@ document.addEventListener("click",e=>{
   if(window.matchMedia("(max-width:700px)").matches){const sd=document.getElementById("side");if(sd.classList.contains("open")&&!e.target.closest("#side"))sd.classList.remove("open");}
 },true);
 (function(){
-  // give every filter panel a phone toggle and mark its rows
+  /* Every control panel (docs/DESIGN.md: filters behind a button): search, Filter (n), View; rows open on demand;
+     active filters show as removable chips. Open state is kept per list in S.copen. */
+  S.copen=S.copen||{};
   const fix=()=>{document.querySelectorAll("#content .ctlp").forEach(p=>{
-    p.classList.toggle("mopen",!!S.mctl);
-    p.querySelectorAll(":scope>.ctlr").forEach(r=>{const l=(r.querySelector(".ctll")||{}).textContent||"";r.classList.toggle("cshow",/^(show|sweeps)$/i.test(l.trim()));r.classList.toggle("cswp",/^sweeps$/i.test(l.trim()));r.classList.toggle("fx",/^filter$/i.test(l.trim()))});
-    if(!p.querySelector(":scope>.mtog")){
-      const n=[...p.querySelectorAll(".ctlr.fx input,.ctlr.fx select")].filter(x=>x.value).length;
-      const b=document.createElement("button");b.className="mob mtog";b.dataset.act="mctl";
-      b.textContent=S.mctl?"Hide filters & view ▴":"Filters & view"+(n?" ("+n+" on)":"")+" ▾";p.prepend(b)}
+    if(p.querySelector(":scope>.ctlh"))return;
+    const vk=p.dataset.vk||"x",st=S.copen[vk]||{};
+    let fr=null,vr=null;
+    p.querySelectorAll(":scope>.ctlr").forEach(r=>{const l=((r.querySelector(".ctll")||{}).textContent||"").trim().toLowerCase();
+      if(l==="filter"){r.classList.add("fx");fr=r}else if(l==="view"){r.classList.add("cv");vr=r}else r.classList.add("cshow");r.classList.toggle("cswp",l==="sweeps")});
+    const head=document.createElement("div");head.className="ctlh";
+    const q=fr&&fr.querySelector('input[data-act="fq"]');if(q){q.classList.add("ctlq");q.setAttribute("aria-label","Search this list");head.appendChild(q)}
+    const sp=document.createElement("span");sp.className="sp";head.appendChild(sp);
+    const fields=fr?[...fr.querySelectorAll("select.pillsel,input.pillsel")]:[];
+    const on=fields.filter(x=>x.value);
+    if(fr){const b=document.createElement("button");b.className="tbtn"+(st.f?" on":"");b.dataset.act="ctlf";b.setAttribute("aria-expanded",String(!!st.f));b.innerHTML=`${ic("filter")}<span>Filter${on.length?" · "+on.length:""}</span>`;head.appendChild(b)}
+    if(vr){const b=document.createElement("button");b.className="tbtn"+(st.v?" on":"");b.dataset.act="ctlv";b.setAttribute("aria-expanded",String(!!st.v));b.innerHTML=`${ic("view")}<span>View</span>`;head.appendChild(b)}
+    p.insertBefore(head,p.querySelector(":scope>.ctlr:not(.cshow)"));
+    if(on.length){const chips=document.createElement("div");chips.className="ctlchips";
+      on.forEach(x=>{const lab=x.tagName==="SELECT"?(x.options[0]&&x.options[0].text)||x.dataset.f:(x.placeholder||"").replace(/…$/,"");const c=document.createElement("span");c.className="chip";c.innerHTML=`${esc(lab)}: <b>${esc(x.dataset.f==="sphere"?sphName(x.value):x.value)}</b><button class="lnk" aria-label="Remove ${esc(lab)} filter">×</button>`;
+        c.querySelector("button").addEventListener("click",ev=>{ev.preventDefault();ev.stopPropagation();x.value="";x.dispatchEvent(new Event("change",{bubbles:true}))});chips.appendChild(c)});
+      head.after(chips)}
+    p.classList.toggle("fopen",!!st.f);p.classList.toggle("vopen",!!st.v);
   })};
   const c=document.getElementById("content");new MutationObserver(fix).observe(c,{childList:true});
+  document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest('[data-act="ctlf"],[data-act="ctlv"]');if(!b)return;e.preventDefault();e.stopPropagation();
+    const p=b.closest(".ctlp"),vk=p.dataset.vk||"x",st=S.copen[vk]=S.copen[vk]||{},k=b.dataset.act==="ctlf"?"f":"v";st[k]=!st[k];
+    p.classList.toggle(k==="f"?"fopen":"vopen",st[k]);b.classList.toggle("on",st[k]);b.setAttribute("aria-expanded",String(st[k]))},true);
 })();
 async function boot(){
   route();

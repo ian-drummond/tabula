@@ -27,6 +27,13 @@ updated on purpose, in the same pull request, with a reason. Never quietly.
   density switch, View options (lists), More (…), one primary New button. Nothing else. The More menu holds
   view toggles (key images, details in every row, raw Markdown, page width) and Export.
 - **Calendar**: Day, Week, Month and Year are one control, not separate pages in the sidebar.
+- **Today** has, from top to bottom:
+  - a day bar: previous, Today and next, then a date picker
+  - one attention banner: counts you can click, plus a secondary Review Today button (New is the screen's
+    primary button)
+  - a View button for layout, grouping and sorting
+  - the content: Events, Tasks, Notes
+  Never add panels above the content; new kinds of attention become chips in the banner.
 - **Phone**: tab bar with Today, Tasks, New, Inbox and More (More opens the sidebar). Same components, no
   separate design.
 
@@ -56,6 +63,8 @@ Sensitive and Archive.
 - **Chips:** one style, for people, collections, filters and related items. Removable chips show ×.
 - **Filters:** a search field plus a Filter button. Active filters show as removable chips. Never a wall of
   dropdowns on the page.
+- **Review sheet** rows show the title, a line of metadata, then Done, Today and a … menu for the rest
+  (Tomorrow, a date, priority, open, drop).
 - **Every list row** is the same component: checkbox or type icon, title, one line of metadata, optional
   trailing date or thumbnail. Hover actions appear on hover only.
 

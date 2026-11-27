@@ -747,6 +747,56 @@ body.insp-on .cols2,body.insp-on .dpair{grid-template-columns:minmax(0,1fr)}
  body.insp-on::after{content:"";position:fixed;inset:0;background:var(--scrim);z-index:55}
  .doc .doc-t{font-size:24px}
 }
+/* Today: day bar and one attention banner */
+.ic.flip{transform:scaleX(-1)}
+.daybar{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:2px 0 10px}
+.daybar .seg button{display:inline-grid;place-items:center;min-width:30px}
+.daybar .seg .ic{width:13px;height:13px}
+.dpick{width:auto;padding:3px 8px}
+.drange{font-weight:600}
+.att{display:flex;align-items:center;gap:12px;padding:8px 10px 8px 12px;margin:0 0 14px;border-radius:var(--r3);background:color-mix(in srgb,var(--orange) 9%,var(--surface));box-shadow:inset 0 0 0 var(--bw) var(--edge)}
+.att.calm{background:var(--surface2)}
+.att-l{display:flex;flex-wrap:wrap;gap:4px;flex:1;min-width:0;align-items:center}
+.att-i{display:inline-flex;align-items:baseline;gap:6px;background:none;box-shadow:none;padding:3px 8px;border-radius:var(--r1);color:var(--ink);font-weight:500}
+.att-i b{font-variant-numeric:tabular-nums;font-weight:700}
+.att-i.hot b{color:var(--red)}
+.att-i:hover{background:color-mix(in srgb,var(--ink) 7%,transparent)}
+.att-i.on{background:var(--fill)}
+.att-rev{margin:-6px 0 14px}
+/* every list: Search · Filter · View, rows on demand, active filters as chips */
+.ctlp,#content .ctlp{background:none;border:0;box-shadow:none;padding:0;margin:4px 0 14px}
+.ctlh{display:flex;align-items:center;gap:6px}
+.ctlq{width:min(300px,100%)}
+.ctlh .tbtn{display:inline-flex;align-items:center;gap:6px}
+.ctlh .tbtn .ic{width:15px;height:15px}
+.ctlp>.ctlr{border-top:0}
+.ctlp>.ctlr.fx,.ctlp>.ctlr.cv{display:none;margin-top:8px;padding:10px 12px;background:var(--surface2);border-radius:var(--r3)}
+.ctlp.fopen>.ctlr.fx,.ctlp.vopen>.ctlr.cv{display:flex}
+.ctlp>.ctlr.cshow{padding:0 0 10px}
+.ctlp>.ctlr.cshow>.ctll{display:none}
+.ctlr.cshow .seg{background:none;padding:0;gap:4px;flex-wrap:wrap}
+.ctlr.cshow .seg a{background:var(--fill2);border-radius:var(--r1);padding:3px 10px;font-weight:500}
+.ctlr.cshow .seg a.on{background:var(--accent-bg);color:var(--accent);box-shadow:none}
+.ctlr.cshow .seg a .mute{font-size:12px}
+.ctlchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.ctlchips .chip{cursor:default}
+.ctlchips .chip button{padding:0 0 0 4px;color:var(--ink2);font-size:14px;line-height:1}
+/* Review sheet */
+.sheet-h h3{margin:0;font-size:var(--t-head)}
+.sheet-h p{margin:2px 0 10px}
+#trl .trr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--sep)}
+.trn{font-weight:500}
+.tra{display:flex;gap:4px;align-items:center}
+.tra>button{padding:3px 10px}
+.mdate{display:flex;flex-direction:column;gap:4px;padding:5px 10px;font-size:var(--t-small);color:var(--ink2)}
+.sh-f{display:flex;gap:8px;align-items:center;margin-top:12px}
+/* item editor: labeled rows with segmented choices */
+.xprops{margin-top:12px}
+.xprops .qb{display:inline-flex;flex-wrap:wrap;gap:2px;background:var(--fill);border-radius:var(--r2);padding:2px}
+.xprops .qb button,.exp .xprops .qb button{margin:0;background:none;box-shadow:none;border-radius:calc(var(--r2) - 2px);padding:2px 10px;font-size:13px;color:var(--ink);font-weight:500}
+.xprops .qb button.on,.exp .xprops .qb button.on{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 2px var(--shade2),inset 0 0 0 var(--bw) var(--edge)}
+#content .dot,.sub .dot,.etb .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:baseline}
+@media (max-width:700px){.att{flex-direction:column;align-items:stretch}.ctlq{flex:1}}
 /* ---------- phone layout ---------- */
 .mob,#bnav{display:none}
 @media (max-width:700px){
@@ -791,7 +841,6 @@ body.insp-on .cols2,body.insp-on .dpair{grid-template-columns:minmax(0,1fr)}
  /* list control panels: show strip + toggle; filters/view on demand */
  .ctlp{padding:8px 10px;margin:6px 0 12px;box-shadow:none}
  .ctlp>.mtog{width:100%;justify-content:space-between}
- .ctlp:not(.mopen)>.ctlr:not(.cshow){display:none}
  .ctlr{flex-direction:column;gap:6px;padding:8px 0}
  .ctlp:not(.mopen)>.ctlr.cshow{border-top:0;padding-bottom:0}
  .ctll{width:auto;padding-top:0}
