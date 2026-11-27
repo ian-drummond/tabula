@@ -36,8 +36,8 @@ All interface work follows the design guide in [`docs/DESIGN.md`](docs/DESIGN.md
 ## Signing in
 - Email and password, with **Forgot password?** and an emailed sign-in link as a fallback (`src/auth.ts`).
 - First time with an existing account: choose **Forgot password?** on the sign-in page to set a password.
-  Later changes: Data & export → Account Settings.
-- Account Settings also has Sign Out and Sign Out Everywhere (all devices).
+  Later changes: Settings (bottom of the sidebar) → Account….
+- Account also has Sign Out and Sign Out Everywhere (all devices).
 - **Opening sign-ups later:** allow new users in Supabase, set `VITE_SIGNUPS_OPEN=true` in Vercel (this shows
   "Create an account"), and turn on CAPTCHA in Supabase → Attack Protection so bots can't create accounts.
 

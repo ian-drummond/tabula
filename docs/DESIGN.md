@@ -18,12 +18,17 @@ updated on purpose, in the same pull request, with a reason. Never quietly.
 
 ## Layout and navigation
 
-- **Sidebar** has four fixed sections that don't grow with your data: Today (Today, Inbox, Upcoming, Review),
-  Lists (Next actions, Waiting for, Someday, pinned views), Library (Notes, People, Events, Collections),
-  Spheres (filters). People, events and images belong on their Library pages, not in the sidebar.
-- **Toolbar**, in this order: back/forward, page title, Day/Week/Month/Year control where it applies,
-  density switch on lists, View options, More (…), one primary New button. Nothing else.
-- **Phone**: tab bar (Today, Inbox, Lists, Library, Search). Same components, no separate design.
+- **Sidebar** has four fixed sections that don't grow with your data: Today, Inbox and Review at the top;
+  Lists (Tasks, Next actions, Waiting for, Someday, saved lists); Library (Notes, People, Events, Collections,
+  Images); Spheres (each opens Tasks filtered to that sphere). Individual people, events and collections belong
+  on their Library pages, not in the sidebar. A Settings menu at the foot holds Appearance, Account, Data &
+  export, Archived and Task report.
+- **Toolbar**, in this order: back/forward, page title, Day/Week/Month/Year control on calendar pages,
+  density switch, View options (lists), More (…), one primary New button. Nothing else. The More menu holds
+  view toggles (key images, details in every row, raw Markdown, page width) and Export.
+- **Calendar**: Day, Week, Month and Year are one control, not separate pages in the sidebar.
+- **Phone**: tab bar with Today, Tasks, New, Inbox and More (More opens the sidebar). Same components, no
+  separate design.
 
 ## Where things open
 
