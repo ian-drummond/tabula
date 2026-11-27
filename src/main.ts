@@ -18,7 +18,7 @@ function gate(msg = "") {
     e.preventDefault();
     const email = (document.getElementById("tab_email") as HTMLInputElement).value.trim();
     const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname, shouldCreateUser: true } });
-    (document.getElementById("tab_msg") as HTMLElement).textContent = error ? "Couldn't send: " + error.message : "Check your email for the sign-in link.";
+    (document.getElementById("tab_msg") as HTMLElement).textContent = error ? "Couldn't send: " + error.message + " [" + (configured ? "host " + new URL(import.meta.env.VITE_SUPABASE_URL || import.meta.env.NEXT_PUBLIC_SUPABASE_URL).host + ", key " + String((import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "").length) + " chars" : "NOT CONFIGURED: env vars missing from build") + "]" : "Check your email for the sign-in link.";
   });
 }
 
