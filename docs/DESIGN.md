@@ -35,12 +35,16 @@ updated on purpose, in the same pull request, with a reason. Never quietly.
 | Container | Used for | Nothing else |
 |---|---|---|
 | Full page | Notes, people, events, meetings. ⌘I shows every property beside the page. Esc goes back. | |
-| Inspector (right panel; sheet on phone) | Tasks, so the list stays in view. ⌘↩ opens a task full page. | |
+| Inspector (right panel; sheet on phone) | Tasks, so the list stays in view. ⌘↩ opens a task full page. Also: the Details beside a full page, and editing a person or collection. | |
 | Popover | Picking one value: date, person, sphere, collection, related item, filters. | |
 | Sheet (dimmed, titled, ends with Done) | Focused flows with an end: Review, Import, New item. | |
 | Menu | Rare or destructive actions: Migrate, Drop, Archive, Export, Convert. | |
 
-Rows never expand inline into editors. Never add a new kind of container.
+Rows never expand inline into editors, and there are no pop-out tabs. Never add a new kind of container.
+
+Keyboard: Esc closes the side panel (or goes back from a full page), ⌘↩ opens the selected task full page,
+⌘I shows or hides Details on a full page. The item menu (…) holds Open Full Page, Migrate, Drop, Mark as
+Sensitive and Archive.
 
 ## Controls
 
