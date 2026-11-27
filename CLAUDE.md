@@ -25,4 +25,6 @@ the original app in `public/legacy/app.js`, Supabase for data. See `README.md` f
 
 - Appearance settings (theme, mode, accent, font, text size, surface, density) live in `src/appearance.ts`,
   with a small inline script in `index.html` that applies them before first paint.
+- Sign-in, password reset and the Account panel live in `src/auth.ts`. Messages there must never reveal whether
+  an email has an account.
 - Over time, parts of `public/legacy/app.js` move into typed modules in `src/`.
