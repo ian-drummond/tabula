@@ -1,3 +1,4 @@
+import "./appearance";
 import { supabase, configured } from "./supabase";
 import { installPlatform } from "./platform";
 import { importZip } from "./importZip";

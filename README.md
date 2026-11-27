@@ -15,6 +15,9 @@ Markdown everywhere; all data exportable as a folder of Markdown files.
 - `src/importZip.ts` restores a "Download all" zip from the old Tabula, images included (Data → Import).
 - Over time, parts of `legacy/app.js` move into typed modules in `src/`.
 
+## Design
+All interface work follows the design guide in [`docs/DESIGN.md`](docs/DESIGN.md): tokens, components, where things open, and the Appearance settings (theme, light/dark, accent, writing font, text size, surface, density).
+
 ## Setup
 1. **Supabase**: create a project. In the SQL editor, run `supabase/migrations/20261126000000_init.sql`.
    - Authentication → URL configuration: set Site URL to the Vercel URL (and add `http://localhost:5173` for local dev).
