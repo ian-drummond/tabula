@@ -87,11 +87,12 @@ All defined at the top of the stylesheet in `index.html`. Components use tokens 
   colours computed from data: sphere colours and avatar colours.
 - **Type:** UI font is the system font. Sizes: 30 display (full-page titles), 22 title, 17 heading, 15 body,
   13 secondary, 12 label, 11.5 footnote, 10 micro (avatar initials only): `--t-display --t-title --t-head --t-body
-  --t-small --t-label --t-foot --t-micro`. Classes `.t-title .t-head .t-body .t-small .t-foot` apply them in markup.
+  --t-small --t-label --t-foot --t-micro`, plus `--t-brand` (28, the logo wordmark only). Classes `.t-title
+  .t-head .t-body .t-small .t-foot` apply them in markup.
   The only literal size is 16px on phone form fields, which stops iOS zooming in. Weights 400, 500, 600, 700
   only. No all-caps labels.
 - **Writing font:** `--font-write`, `--font-title`, `--write-size` apply only to writing (editors, page titles).
-  The interface never changes font.
+  The interface never changes font. The one exception is the logo wordmark, which uses `--font-title`.
 - **Space:** 4, 8, 12, 16, 24, 32, 48 (`--s1` to `--s7`).
 - **Shape and depth:** `--r1` chips, `--r2` controls, `--r3` cards and rows, `--r4` sheets; `--sh1` raised,
   `--sh2` popovers and sheets; `--edge` for outlines. These come from the Surface setting.
@@ -101,6 +102,9 @@ All defined at the top of the stylesheet in `index.html`. Components use tokens 
 Settings › Appearance holds exactly these: Theme, Light/Dark/Automatic, Accent, Writing font, Text size,
 Surface, Default density.
 
+- **Accent** presets: Theme, Rubric, Blue, Purple, Pink, Red, Orange, Yellow, Green, Graphite. Rubric (light
+  `#a8322d`, dark `#e27a70`) is the default for a device with no saved setting. The logo caret follows the
+  accent, so the brand never adds a colour of its own.
 - **Themes** (`data-palette`): Classic, Codex, Dusk ship first. Harbor, Sage and Highlighter are designed and can
   be added as one token block each. A theme changes color only, plus a suggested font and surface.
 - **Fonts** (`data-font`): System, New York, Literata, Newsreader, Rounded, Plex Mono, Hyperlegible.

@@ -6,7 +6,7 @@
 
 type Palette = "classic" | "codex" | "dusk";
 type Mode = "auto" | "light" | "dark";
-type Accent = "theme" | "blue" | "purple" | "pink" | "red" | "orange" | "yellow" | "green" | "graphite";
+type Accent = "theme" | "rubric" | "blue" | "purple" | "pink" | "red" | "orange" | "yellow" | "green" | "graphite";
 type Font = "theme" | "system" | "newyork" | "literata" | "newsreader" | "rounded" | "mono" | "hyper";
 type Size = "s" | "m" | "l" | "xl";
 type Surface = "theme" | "soft" | "paper" | "crisp";
@@ -16,7 +16,7 @@ export type Settings = { palette: Palette; mode: Mode; accent: Accent; font: Fon
 
 const KEY = "tabula-appearance";
 const DENS_KEY = "tabula-density";
-const DEFAULTS: Settings = { palette: "classic", mode: "auto", accent: "theme", font: "theme", size: "m", surface: "theme", density: "comfy" };
+const DEFAULTS: Settings = { palette: "classic", mode: "auto", accent: "rubric", font: "theme", size: "m", surface: "theme", density: "comfy" };
 
 const THEMES: Record<Palette, { name: string; desc: string; font: Exclude<Font, "theme">; surface: Exclude<Surface, "theme">; swatch: string[] }> = {
   classic: { name: "Classic", desc: "System grays and blue", font: "system", surface: "soft", swatch: ["#f5f5f7", "#1d1d1f", "#0a66e8", "#d93025"] },
@@ -26,6 +26,7 @@ const THEMES: Record<Palette, { name: string; desc: string; font: Exclude<Font, 
 
 const ACCENTS: { id: Accent; name: string; color: string }[] = [
   { id: "theme", name: "Theme", color: "" },
+  { id: "rubric", name: "Rubric", color: "#a8322d" },
   { id: "blue", name: "Blue", color: "#0a66e8" },
   { id: "purple", name: "Purple", color: "#8746d8" },
   { id: "pink", name: "Pink", color: "#c8357a" },
