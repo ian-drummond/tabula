@@ -6,6 +6,9 @@
   Interface rules: docs/DESIGN.md.
 */
 import { supabase } from "./supabase";
+import { APP_NAME, TAGLINE } from "./brand";
+import { logoLockupHtml, logoMarkSvg } from "./components/logo";
+import { VERSION } from "./version";
 
 const MIN_PW = 10;
 const MAX_PW = 72; // the hashing Supabase uses ignores anything longer
@@ -70,7 +73,7 @@ const field = (id: string, label: string, type: string, autocomplete: string, va
   `<label class="af" for="${id}"><span class="afl">${label}${type === "password" ? `<button type="button" class="lnk afs" data-show="${id}" aria-controls="${id}">Show</button>` : ""}</span>
    <input id="${id}" name="${id}" type="${type}" autocomplete="${autocomplete}" value="${esc(value)}" ${type === "email" ? 'inputmode="email" autocapitalize="off" spellcheck="false"' : ""} required ${extra}></label>`;
 
-const brand = `<div class="auth-brand"><svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"><rect x="3" y="5" width="26" height="22" rx="4" fill="#7a4a1e"/><rect x="6.5" y="8.5" width="19" height="15" rx="1.5" fill="#e9c46a"/><path d="M9.5 13h13M9.5 16.5h9M9.5 20h11" stroke="#7a4a1e" stroke-width="1.6" stroke-linecap="round"/></svg><span>Tabula</span></div>`;
+const brand = `<div class="auth-brand">${logoLockupHtml()}<p class="auth-tag">${esc(TAGLINE)}</p></div>`;
 
 function wireShowButtons(root: HTMLElement) {
   root.querySelectorAll<HTMLButtonElement>("[data-show]").forEach((b) =>
@@ -94,7 +97,7 @@ export function showGate(mode: Mode, o: Opts = {}) {
   const swap = (m: Mode, label: string) => `<button type="button" class="lnk" data-mode="${m}">${label}</button>`;
   let body = "";
   if (mode === "unconfigured") {
-    body = `<h1>Tabula isn't set up yet</h1><p class="auth-sub">The build is missing <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code>. Add them in Vercel → Settings → Environment Variables, then redeploy.</p>`;
+    body = `<h1>${esc(APP_NAME)} isn't set up yet</h1><p class="auth-sub">The build is missing <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code>. Add them in Vercel → Settings → Environment Variables, then redeploy.</p>`;
   } else if (mode === "signin") {
     body = `<h1>Sign in</h1><form id="af" novalidate>${field("a_email", "Email", "email", "username", email)}${field("a_pw", "Password", "password", "current-password")}${msg}
       <button class="pri auth-go">Sign In</button></form>
@@ -196,6 +199,7 @@ export async function openAccount() {
       <button class="pri">Change Password</button></form>
     <section><h3>Sign out</h3><div class="acct-out"><button type="button" class="warn" data-out="local">Sign Out</button><button type="button" class="warn" data-out="global">Sign Out Everywhere</button></div>
       <p class="apx-note">Sign Out Everywhere also signs out your other devices and browsers.</p></section>
+    <p class="acct-app">${logoMarkSvg({ size: 24, decorative: true })}<span>${esc(APP_NAME)} · Version ${esc(VERSION)}</span></p>
   </div>`;
   wireShowButtons(dialog);
   dialog.querySelector("[data-close]")!.addEventListener("click", () => dialog!.close());

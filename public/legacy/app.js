@@ -2119,7 +2119,7 @@ function paintSide(){
   const on=(v,a)=>S.view===v&&(a==null||S.arg===a)?"on":"";
   const sphF=(S.filt["list-tasks"]||{}).sphere||"";
   const lk=(h,icon,l,n,cls,attrs)=>`<a href="${h}" class="${cls}"${attrs||""}>${icon}<span class="lbl">${l}</span>${n!=null&&n!==0?`<span class="n">${n}</span>`:""}</a>`;
-  let h=`<div class="brand"><svg class="tlogo" viewBox="0 0 32 32" width="22" height="22" aria-hidden="true"><rect x="3" y="5" width="26" height="22" rx="4" fill="#7a4a1e"/><rect x="6.5" y="8.5" width="19" height="15" rx="1.5" fill="#e9c46a"/><path d="M9.5 13h13M9.5 16.5h9M9.5 20h11" stroke="#7a4a1e" stroke-width="1.6" stroke-linecap="round"/></svg><span class="tword">Tabula</span><button class="sbtn" data-act="burger" title="Hide sidebar" aria-label="Hide sidebar">${ic("sidebar")}</button></div><input id="sq" type="search" placeholder="Search" aria-label="Search everything" value="${esc(S.q)}"><div class="nav">`;
+  let h=`<div class="brand">${window.tabulaBrand?window.tabulaBrand.mark(24):""}<button class="sbtn" data-act="burger" title="Hide sidebar" aria-label="Hide sidebar">${ic("sidebar")}</button></div><input id="sq" type="search" placeholder="Search" aria-label="Search everything" value="${esc(S.q)}"><div class="nav">`;
   h+=lk("#day:"+td,ic("today"),"Today",open.filter(i=>tday(i)===td).length,["daily","month","year"].includes(S.view)?"on":"")
     +lk("#review",ic("inbox"),"Inbox",pend,on("review"))
     +lk("#weekly",ic("review"),"Review",wkDue()?"due":null,on("weekly"));

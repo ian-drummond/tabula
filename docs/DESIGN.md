@@ -92,7 +92,7 @@ All defined at the top of the stylesheet in `index.html`. Components use tokens 
   The only literal size is 16px on phone form fields, which stops iOS zooming in. Weights 400, 500, 600, 700
   only. No all-caps labels.
 - **Writing font:** `--font-write`, `--font-title`, `--write-size` apply only to writing (editors, page titles).
-  The interface never changes font. The one exception is the logo wordmark, which uses `--font-title`.
+  The interface never changes font. The one exception is the logo wordmark and tagline, which use `--font-title`.
 - **Space:** 4, 8, 12, 16, 24, 32, 48 (`--s1` to `--s7`).
 - **Shape and depth:** `--r1` chips, `--r2` controls, `--r3` cards and rows, `--r4` sheets; `--sh1` raised,
   `--sh2` popovers and sheets; `--edge` for outlines. These come from the Surface setting.

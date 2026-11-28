@@ -1,6 +1,9 @@
+import { readFileSync } from 'node:fs'
 import react from '@vitejs/plugin-react'
 import { defineConfig, type Plugin } from 'vite'
 import { APP_NAME, TAGLINE } from './src/brand.ts'
+
+const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string }
 
 // The web app manifest is built from src/brand.ts so the installed app's name has one source.
 function brandManifest(): Plugin {
@@ -39,6 +42,7 @@ function brandManifest(): Plugin {
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), brandManifest()],
+  define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   // only public values: the integration's secret keys have no NEXT_PUBLIC_ prefix
   envPrefix: ["VITE_", "NEXT_PUBLIC_"],
 })
