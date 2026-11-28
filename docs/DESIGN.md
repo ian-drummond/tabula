@@ -81,10 +81,15 @@ Sensitive and Archive.
 All defined at the top of the stylesheet in `index.html`. Components use tokens only.
 
 - **Color:** `--canvas --surface --surface2 --sidebar --ink --ink2 --ink3 --sep --fill --fill2 --accent
-  --accent-bg --on-accent --red --orange --green --purple --teal --brown --star`. Text on an accent fill uses
-  `--on-accent`, never `#fff`.
-- **Type:** UI font is the system font. Sizes: 22 title, 17 heading, 15 body, 13 secondary, 11.5 footnote
-  (`--t-title --t-head --t-body --t-small --t-foot`). Weights 400, 500, 600, 700 only. No all-caps labels.
+  --accent-bg --on-accent --red --orange --green --purple --teal --brown --star`, plus `--shade --shade2` (shadow
+  tints), `--scrim --scrim-strong` (backdrops) and `--on-color` (text on avatar colours). Text on an accent fill
+  uses `--on-accent`, never `#fff`. A literal colour may only appear as the value of a token. The exceptions are
+  colours computed from data: sphere colours and avatar colours.
+- **Type:** UI font is the system font. Sizes: 30 display (full-page titles), 22 title, 17 heading, 15 body,
+  13 secondary, 12 label, 11.5 footnote, 10 micro (avatar initials only): `--t-display --t-title --t-head --t-body
+  --t-small --t-label --t-foot --t-micro`. Classes `.t-title .t-head .t-body .t-small .t-foot` apply them in markup.
+  The only literal size is 16px on phone form fields, which stops iOS zooming in. Weights 400, 500, 600, 700
+  only. No all-caps labels.
 - **Writing font:** `--font-write`, `--font-title`, `--write-size` apply only to writing (editors, page titles).
   The interface never changes font.
 - **Space:** 4, 8, 12, 16, 24, 32, 48 (`--s1` to `--s7`).
@@ -118,7 +123,7 @@ deliberately.
 
 - Does it reuse an existing component and container from this guide?
 - Does it add a control to a page? If so, does it replace one, or does it belong in a menu, View options or Settings?
-- Does it use only tokens (no new hex colors, font sizes, radii, shadows)?
+- Does it use only tokens (no new hex colors, font sizes, radii, shadows)? `npm run check:design` must pass.
 - Does it work in every theme, light and dark, every surface, both densities, and at phone width?
 - Is there still at most one primary button on the screen?
 - Would someone who learned the rest of Tabula find it where they expect?

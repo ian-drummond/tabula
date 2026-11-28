@@ -19,7 +19,9 @@ the original app in `public/legacy/app.js`, Supabase for data. See `README.md` f
 ## Commands
 
 - `npm ci` then `npm run build` (type-check and build). `npm run dev` for local work.
-- `npm run lint` currently reports known false positives in `public/legacy/app.js` (a function named `use`).
+- `npm run lint` passes; the remaining warnings are in the legacy `public/legacy/app.js`.
+- `npm run check:design` fails if a colour or font size bypasses the tokens. Run it after any interface change;
+  it must pass before a change is done.
 
 ## Code
 
