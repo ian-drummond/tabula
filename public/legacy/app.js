@@ -741,7 +741,8 @@ function pageDaily(){
    <input type="date" class="dpick" value="${d}" data-act="pickday" aria-label="Go to a date">${S.range==="day"?"":`<b class="drange">${esc(title)}</b><span class="seg">${[["week","This week"],["next","Next week"]].map(([k,l])=>`<button data-act="range" data-v="${k}" class="${S.range===k?"on":""}">${l}</button>`).join("")}</span>`}
    <span class="mute">Week ${weekNo(d)} · <a href="#month:${monthOf(d)}">${monthLog(d)}</a></span><span class="sp"></span>${S.range==="day"?prioChip(d):""}${S.busy?`<span class="mute">${esc(S.busy)}</span>`:""}</div>`;
   h+=attStrip(d,props.length)+(S.prioOpen&&S.range==="day"?prioPanel(d):"");
-  const lb=layoutBody({evs,evsAll,tasks,done,notes,days});
+  const blank=S.range==="day"&&d===today()&&!(evsAll.length+tasks.length+done.length+notes.length);
+  const lb=blank?`<p class="empty">A blank page. A good place for a second thought.</p>`:layoutBody({evs,evsAll,tasks,done,notes,days});
   h+=`<div class="ctlp" data-vk="daily"><div class="ctlr"><div class="ctll">View</div><div class="ctlc"><span class="mute">Layout</span><div class="seg">${[["cols","Columns"],["sphere","By Sphere"],["flow","Timeline"]].map(([k,l])=>`<button data-act="layout" data-v="${k}" class="${(S.layout||"cols")===k?"on":""}">${l}</button>`).join("")}</div>${S.layout==="flow"?"":S._ctl}</div></div></div>`;
   h+=lb;
   if(trail.length)h+=`<label class="mute"><input type="checkbox" data-act="trail" ${S.trail?"checked":""}> Show ${trail.length} task${trail.length>1?"s":""} migrated away from this day (history only) (not counted)</label>`+(S.trail?`<div class="panel">${trail.map(i=>`<div class="it"><span class="gl">↪</span><div class="mid"><div class="ttl ink2" >${esc(i.text)}</div><div class="dt">now on <a href="#day:${esc(i.date)}">${esc(i.date)}</a></div></div></div>`).join("")}</div>`:"");
@@ -2109,7 +2110,7 @@ const TITLES={img:"Image",images:"Images",daily:"Daily log",month:"Monthly log",
 function pageTitle(){
   if(S.view==="list")return(LISTS[S.arg]||{}).title||"Tasks";
   if(S.view==="person")return pname(S.arg);if(S.view==="event"||S.view==="obj"){const x=itemById(S.arg);return x?kindName(x):"Item"}if(S.view==="coll")return cname(S.arg);
-  if(S.view==="daily")return longDate(S.date);return TITLES[S.view]||"";
+  if(S.view==="daily")return longDate(S.date);if(S.view==="weekly")return"Read it again.";return TITLES[S.view]||"";
 }
 function gh(key,label,extra){const c=S.collapsed[key];return`<div class="gh${c?" shut":""}" data-act="coll" data-k="${key}" role="button" aria-expanded="${!c}"><span class="ghl">${label}</span>${ic("chev","ghc")}${extra||""}</div>`}
 function paintSide(){
@@ -2639,7 +2640,7 @@ function openMigrate(it){
 async function migrate(it,d,quiet){
   if(!d||d===tday(it))return;
   reschedule(it,d);it.status="open";
-  await saveItem(it);if(!quiet)toast("Moved to "+d);
+  await saveItem(it);if(!quiet)toast("Carried forward.");
 }
 function openMergeInto(id){
   const me=S.people.find(p=>p.id===id);if(!me)return;
