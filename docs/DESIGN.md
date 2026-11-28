@@ -115,6 +115,26 @@ Surface, Default density.
   whether metadata sits beside the title. Never text size, icons or control positions.
 - **No appearance setting may change layout, spacing, control size, icon shapes or where controls sit.**
 
+## Brand
+
+- **One source for the name.** `src/brand.ts` exports `APP_NAME` and `TAGLINE`. Interface code, the manifest and
+  the logo read them; nothing else hard-codes the name.
+- **One logo component.** `src/components/Logo.tsx` (React) and `src/components/logo.ts` (markup for code that
+  builds HTML strings) draw the same mark: a baseline and a caret. Variants are `mark` and `lockup` (mark plus
+  wordmark). The stroke gets thicker as the mark gets smaller so it holds at 16 px. A mark that stands alone has a
+  label; a mark beside the name is hidden from screen readers.
+- **Colour comes from the app.** The baseline follows the text colour and the caret follows the accent, so the
+  logo recolours when the accent changes. There is no brand colour. Rubric is an ordinary accent preset. Do not
+  add brand colours or brand tokens. The wordmark and tagline use the writing font at `--t-brand`.
+- **Where it may appear:** the sign-in screen (lockup and tagline), the Account panel (mark, name and version),
+  and the sidebar header (mark only). Not in the toolbar, not in the phone tab bar, no About sheet. The sidebar
+  mark must not compete with New or add a section.
+- **Icons.** The favicon, touch icon and manifest icons are image files with fixed colours, which is allowed
+  because they live outside the stylesheet. `theme-color` in `index.html` is a literal by necessity.
+- **Microcopy** is limited to three places: the empty Today ("A blank page. A good place for a second thought."),
+  the migration confirmation ("Carried forward.") and the Review page title ("Read it again."). Add more only when
+  asked.
+
 ## Copy
 
 Plain words from the user's side: "Overdue · Nov 24", not "overdue · was due Nov 24"; "Moved 5×", not "↪5".
