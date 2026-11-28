@@ -1,7 +1,9 @@
 /*
   The one place the product name and tagline live. Interface code, the manifest and the logo read these;
-  nothing else hard-codes the name. Renaming the app is a one-line change here (plus README, package.json,
-  index.html and the hosting project names, which PR 1 of the brand brief handles).
+  nothing else hard-codes the name. Renaming the app starts here (then README, package.json, index.html and the
+  hosting project names).
 */
-export const APP_NAME = "Tabula";
+export const APP_NAME = "Second Thoughts";
+/** For file names: exports, backups. */
+export const APP_SLUG = "second-thoughts";
 export const TAGLINE = "Think twice. Write once.";

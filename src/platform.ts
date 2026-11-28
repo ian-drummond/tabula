@@ -1,5 +1,5 @@
 /*
-  Platform adapter: gives the Tabula app the same capabilities it had as a claude.ai artifact
+  Platform adapter: gives the app the same capabilities it had as a claude.ai artifact
   (window.claude.use("db" | "sample" | "assets" | "downloads" | "dictation" | "mcp")),
   backed by Supabase (database, storage, an Edge Function for AI) and the browser.
 */

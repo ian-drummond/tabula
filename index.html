@@ -6,9 +6,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Tabula">
+<meta name="apple-mobile-web-app-title" content="Second Thoughts">
 <meta name="theme-color" content="#ffffff">
-<title>Tabula</title>
+<title>Second Thoughts</title>
 <script>(function(){try{var a=JSON.parse(localStorage.getItem("tabula-appearance")||"{}"),r=document.documentElement,D={classic:["system","soft"],codex:["newyork","paper"],dusk:["newsreader","soft"]},p=D[a.palette]?a.palette:"classic";r.setAttribute("data-palette",p);if(a.mode==="light"||a.mode==="dark")r.setAttribute("data-theme",a.mode);var ac=a.accent||"rubric";if(ac!=="theme")r.setAttribute("data-accent",ac);var f=a.font&&a.font!=="theme"?a.font:D[p][0];if(f!=="system")r.setAttribute("data-font",f);r.setAttribute("data-surface",a.surface&&a.surface!=="theme"?a.surface:D[p][1]);if(a.size&&a.size!=="m")r.setAttribute("data-size",a.size)}catch(e){}})()</script>
 <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/favicon.svg" sizes="any" type="image/svg+xml">
@@ -649,7 +649,8 @@ body.gate #content{max-width:none}
 .auth{max-width:380px;margin:min(12vh,96px) auto 48px;display:flex;flex-direction:column;gap:var(--s4)}
 .auth-brand{display:flex;flex-direction:column;align-items:flex-start;gap:var(--s1)}
 .auth-tag{margin:0;color:var(--ink2);font:var(--t-small) var(--font-title)}
-.empty{margin:var(--s6) 0;color:var(--ink2);font-size:var(--t-head)}
+.empty{margin:var(--s6) 0 var(--s4);color:var(--ink2);font:var(--t-head) var(--font-title)}
+.blank h2{margin-bottom:var(--s2)}.blank h2:last-child{margin-bottom:0}
 .acct-app{display:flex;align-items:center;gap:var(--s2);margin:var(--s3) 0 0;color:var(--ink2);font-size:var(--t-small)}
 .auth h1{margin:var(--s2) 0 0;font:700 var(--t-title)/1.2 var(--font-title)}
 .auth-sub{margin:0;color:var(--ink2)}

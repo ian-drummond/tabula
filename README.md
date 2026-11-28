@@ -1,10 +1,10 @@
-# Tabula
+# Second Thoughts
 
 Personal planner and journal. Inspired by GTD, bullet journaling and commonplace books.
 Markdown everywhere; all data exportable as a folder of Markdown files.
 
 ## How it is built (v0.1)
-- The full Tabula app (originally a claude.ai artifact) runs unchanged from `public/legacy/app.js`.
+- The full app (originally named Tabula; originally a claude.ai artifact) runs unchanged from `public/legacy/app.js`.
 - `src/platform.ts` gives it the capabilities it had on claude.ai, backed by Supabase and the browser:
   - `db` → table `public.records` (one row per record: `coll`, `id`, `data` jsonb; owner-only RLS; realtime)
   - `sample` (AI) → Edge Function `ai`, which calls the Anthropic API with a key kept in Supabase secrets
@@ -12,7 +12,7 @@ Markdown everywhere; all data exportable as a folder of Markdown files.
   - `downloads` → browser download; `dictation` → browser speech recognition
   - `mcp` (Google Calendar, Evernote) → off for now; Google OAuth comes later
 - `src/main.ts` adds email sign-in (magic link) and loads the app after sign-in.
-- `src/importZip.ts` restores a "Download all" zip from the old Tabula, images included (Data → Import).
+- `src/importZip.ts` restores a "Download all" zip from the old Tabula (or an earlier export from this app), images included (Data → Import).
 - Over time, parts of `legacy/app.js` move into typed modules in `src/`.
 
 ## Design
@@ -21,7 +21,7 @@ All interface work follows the design guide in [`docs/DESIGN.md`](docs/DESIGN.md
 ## Setup
 1. **Supabase**: create a project. In the SQL editor, run `supabase/migrations/20261126000000_init.sql`.
    - Authentication → URL configuration: set Site URL to the Vercel URL. Under Redirect URLs add the Vercel URL,
-     `https://tabula-git-*-team-drummond.vercel.app/**` (preview builds) and `http://localhost:5173/**` (local dev).
+     `https://tabula-git-*-team-drummond.vercel.app/**` (preview builds; after renaming the Vercel project, use its new name in this pattern) and `http://localhost:5173/**` (local dev).
      Sign-in and reset links only go to addresses on this list.
    - Authentication → Sign In / Providers → Email: keep Email on, turn on **Confirm email**, set **Minimum password
      length** to 10, and turn on **Secure password change** (the app asks for the emailed code when needed).

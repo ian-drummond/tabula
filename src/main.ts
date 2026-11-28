@@ -4,6 +4,7 @@ import { installPlatform } from "./platform";
 import { importZip } from "./importZip";
 import { showGate, isResetLink } from "./auth";
 import { logoMarkSvg } from "./components/logo";
+import { APP_NAME, APP_SLUG, TAGLINE } from "./brand";
 
 let started = false;
 async function start() {
@@ -15,7 +16,7 @@ async function start() {
   await installPlatform();
   const w = window as unknown as { tabulaApp: boolean; tabulaImportZip: (f: File) => Promise<void> };
   w.tabulaApp = true;
-  (window as unknown as { tabulaBrand: unknown }).tabulaBrand = { mark: (size: number) => logoMarkSvg({ size }) };
+  (window as unknown as { tabulaBrand: unknown }).tabulaBrand = { name: APP_NAME, slug: APP_SLUG, tagline: TAGLINE, mark: (size: number) => logoMarkSvg({ size }) };
   w.tabulaImportZip = importZip;
   const s = document.createElement("script");
   s.src = "/legacy/app.js";

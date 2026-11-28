@@ -1,7 +1,7 @@
-# Tabula design guide
+# Second Thoughts design guide
 
 This is the standard every interface change is checked against. It comes from the November 2026 design review
-(the "Tabula, refined" artifact). If a change and this guide disagree, either the change adapts or the guide is
+(the "Tabula, refined" artifact, from before the app was renamed). If a change and this guide disagree, either the change adapts or the guide is
 updated on purpose, in the same pull request, with a reason. Never quietly.
 
 ## Principles
@@ -131,9 +131,9 @@ Surface, Default density.
   mark must not compete with New or add a section.
 - **Icons.** The favicon, touch icon and manifest icons are image files with fixed colours, which is allowed
   because they live outside the stylesheet. `theme-color` in `index.html` is a literal by necessity.
-- **Microcopy** is limited to three places: the empty Today ("A blank page. A good place for a second thought."),
-  the migration confirmation ("Carried forward.") and the Review page title ("Read it again."). Add more only when
-  asked.
+- **Microcopy** is limited to three places: the empty Today (the tagline, with the Events, Tasks and Notes
+  sections collapsed to one line each so new items are one click away), the migration confirmation
+  ("Carried forward.") and the Review page title ("Read it again."). Add more only when asked.
 
 ## Copy
 
@@ -150,4 +150,4 @@ deliberately.
 - Does it use only tokens (no new hex colors, font sizes, radii, shadows)? `npm run check:design` must pass.
 - Does it work in every theme, light and dark, every surface, both densities, and at phone width?
 - Is there still at most one primary button on the screen?
-- Would someone who learned the rest of Tabula find it where they expect?
+- Would someone who learned the rest of the app find it where they expect?

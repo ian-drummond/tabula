@@ -1,4 +1,4 @@
-// Tabula AI proxy: the browser sends a prompt (and optional images); this function calls the
+// Second Thoughts AI proxy: the browser sends a prompt (and optional images); this function calls the
 // Anthropic Messages API with the key kept in Supabase secrets. Only signed-in users can call it
 // (Supabase verifies the JWT before this code runs).
 // Secrets: ANTHROPIC_API_KEY (required); TABULA_MODEL_QUICK / TABULA_MODEL_DEFAULT (optional).
@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         model: MODELS[tier] || MODELS.default,
         max_tokens: wantJson ? 8000 : 4000,
-        system: "You are the assistant inside Tabula, a personal planner and journal app. Follow the instructions in the user message exactly." + (wantJson ? " Reply with valid JSON only, no prose and no code fences." : ""),
+        system: "You are the assistant inside Second Thoughts, a personal planner and journal app. Follow the instructions in the user message exactly." + (wantJson ? " Reply with valid JSON only, no prose and no code fences." : ""),
         messages: [{ role: "user", content }],
       }),
     });

@@ -42,6 +42,7 @@ function ic(n,c){return`<svg class="ic${c?" "+c:""}" viewBox="0 0 16 16" fill="n
 function sphLabel(sp){return`<i class="dot" style="background:${tintFor("sphere:"+sp)}"></i>${esc(sphName(sp))}`}
 function sphName(sp){return String(sp).replace(/^[\p{Extended_Pictographic}️‍\s]+/u,"")||String(sp)}
 /* ---------- state ---------- */
+const BR=()=>window.tabulaBrand||{name:"Second Thoughts",slug:"second-thoughts",tagline:""};
 const S={imgs:[],assets:null,reveal:{},relTab:"event",orgs:[],items:[],people:[],events:[],colls:[],props:[],views:[],ready:false,db:null,sample:null,mcp:null,dl:null,dict:null,
   view:"daily",ptabs:[],showTr:{},arg:"",date:today(),range:"day",expanded:{},moreOpen:{},detailMode:'auto',mopen:{},prioOpen:false,dgroup:null,filt:{},fq:{},modes:{},groups:{},sorts:{},tabs:{},base:{},fields:{chips:1,detail:1,due:1},
   q:"",busy:"",loadErr:"",collapsed:{},trail:false};
@@ -741,8 +742,9 @@ function pageDaily(){
    <input type="date" class="dpick" value="${d}" data-act="pickday" aria-label="Go to a date">${S.range==="day"?"":`<b class="drange">${esc(title)}</b><span class="seg">${[["week","This week"],["next","Next week"]].map(([k,l])=>`<button data-act="range" data-v="${k}" class="${S.range===k?"on":""}">${l}</button>`).join("")}</span>`}
    <span class="mute">Week ${weekNo(d)} · <a href="#month:${monthOf(d)}">${monthLog(d)}</a></span><span class="sp"></span>${S.range==="day"?prioChip(d):""}${S.busy?`<span class="mute">${esc(S.busy)}</span>`:""}</div>`;
   h+=attStrip(d,props.length)+(S.prioOpen&&S.range==="day"?prioPanel(d):"");
-  const blank=S.range==="day"&&d===today()&&!(evsAll.length+tasks.length+done.length+notes.length);
-  const lb=blank?`<p class="empty">A blank page. A good place for a second thought.</p>`:layoutBody({evs,evsAll,tasks,done,notes,days});
+  const blank=S.range==="day"&&d===today()&&!S.addIn&&!(evsAll.length+tasks.length+done.length+notes.length);
+  /* empty Today: the tagline, and the three sections collapsed to one line each; Add opens the full layout */
+  const lb=blank?`<p class="empty">${esc(BR().tagline)}</p><div class="panel blank">${[["Events","event"],["Tasks","task"],["Notes &amp; ideas","note"]].map(([l,k])=>`<h2>${l} <span class="c">0</span><span class="sp"></span><button class="lnk" data-act="addin" data-k="${k}">Add</button></h2>`).join("")}</div>`:layoutBody({evs,evsAll,tasks,done,notes,days});
   h+=`<div class="ctlp" data-vk="daily"><div class="ctlr"><div class="ctll">View</div><div class="ctlc"><span class="mute">Layout</span><div class="seg">${[["cols","Columns"],["sphere","By Sphere"],["flow","Timeline"]].map(([k,l])=>`<button data-act="layout" data-v="${k}" class="${(S.layout||"cols")===k?"on":""}">${l}</button>`).join("")}</div>${S.layout==="flow"?"":S._ctl}</div></div></div>`;
   h+=lb;
   if(trail.length)h+=`<label class="mute"><input type="checkbox" data-act="trail" ${S.trail?"checked":""}> Show ${trail.length} task${trail.length>1?"s":""} migrated away from this day (history only) (not counted)</label>`+(S.trail?`<div class="panel">${trail.map(i=>`<div class="it"><span class="gl">↪</span><div class="mid"><div class="ttl ink2" >${esc(i.text)}</div><div class="dt">now on <a href="#day:${esc(i.date)}">${esc(i.date)}</a></div></div></div>`).join("")}</div>`:"");
@@ -3013,7 +3015,7 @@ function openBackfill(d){
     if(g("b_tr").checked){const o={fileName:fileNm,evId:g("b_ev").value,name:g("b_sn").value,link:g("b_su").value};closeModal();await attachTranscript(text,o);return}
     const def=g("b_inf").checked?"":g("b_d").value,src={name:g("b_sn").value,loc:g("b_sl").value,link:g("b_su").value};closeModal();await parseText(text,def,src)};
 }
-/* ---------- Tabula engine: one way to read any text and propose records ----------
+/* ---------- engine: one way to read any text and propose records ----------
    Every source (Capture/journal entry, meeting transcript, imported or pasted text, Evernote pull)
    goes through engineRun() (AI reads the text) and engineFile() (dedupe, trust rules, Inbox). */
 const ENG_SRC={journal:"journal entries",meeting:"meeting transcripts",import:"imported text",evernote:"Evernote notes"};
@@ -3037,7 +3039,7 @@ async function engineRun(o){
   const text=String(o.text||""),chunks=[];for(let i=0;i<text.length;i+=12000)chunks.push(text.slice(i,i+12000));
   const res={title:"",sphere:null,people:[],outputs:[]},seen=new Set();
   for(let ci=0;ci<chunks.length;ci++){
-    const out=await S.sample.json(`You read ${o.what||"a piece of text"} for ${me}, the user, and turn it into records for their planner app, Tabula.${o.title?` Source: "${o.title}".`:""} ${day?`The text belongs to ${day} (${dow}); resolve relative dates against it.`:"Infer dates from the text."} Today is ${today()}.${chunks.length>1?` This is part ${ci+1} of ${chunks.length}.`:""}
+    const out=await S.sample.json(`You read ${o.what||"a piece of text"} for ${me}, the user, and turn it into records for their planner app, ${BR().name}.${o.title?` Source: "${o.title}".`:""} ${day?`The text belongs to ${day} (${dow}); resolve relative dates against it.`:"Infer dates from the text."} Today is ${today()}.${chunks.length>1?` This is part ${ci+1} of ${chunks.length}.`:""}
 Spheres: ${JSON.stringify(SPHERES)}.
 Known people (when someone is the same person, use this exact full name): ${ppl||"(none)"}${o.attendees&&o.attendees.length?`\nKnown attendees: ${o.attendees.join(", ")}`:""}
 Existing events near that date (id|date|time|title):
@@ -3161,7 +3163,7 @@ Pick items that belong. Each line is index|date|text. Return JSON {"matches":[{"
 }
 /* ---------- export ---------- */
 function mdAll(){
-  const L=["# Tabula export","Exported "+new Date().toISOString(),""];
+  const L=["# "+BR().name+" export","Exported "+new Date().toISOString(),""];
   const its=V();const days=[...new Set(its.map(i=>i.date))].sort();
   const sym=i=>i.kind==="event"?"○":i.kind==="note"?"–":({open:"•",done:"×",dropped:"~"})[i.status||"open"];
   const line=i=>`- ${sym(i)} ${i.star?"★ ":""}${i.text}${i.people&&i.people.length?" "+i.people.map(p=>"@"+pname(p)).join(" "):""}${i.events&&i.events.length?" "+i.events.map(p=>"#"+ename(p)).join(" "):""}${i.due?" (due "+i.due+")":""}${carriedN(i)?" [carried from "+i.history.join(", ")+"]":""}${i.src&&i.src.name?" — source: "+i.src.name+(i.src.loc?", "+i.src.loc:"")+(i.src.link?" <"+i.src.link+">":""):""}${i.detail?"\n  "+i.detail.replace(/\n/g,"\n  "):""}`;
@@ -3173,8 +3175,8 @@ function mdAll(){
   return L.join("\n");
 }
 async function saveFile(name,data){if(!S.dl){toast("Downloads not available here");return}try{await S.dl.save({filename:name,data});toast("Saved")}catch(e){if(e.code!=="declined")toast("Download failed: "+e.code)}}
-function exportMd(){saveFile("tabula-"+today()+".md",mdAll())}
-function exportJson(){saveFile("tabula-backup-"+today()+".json",JSON.stringify(backupBundle(),null,1))}
+function exportMd(){saveFile(BR().slug+"-"+today()+".md",mdAll())}
+function exportJson(){saveFile(BR().slug+"-backup-"+today()+".json",JSON.stringify(backupBundle(),null,1))}
 /* ---------- export: a folder of Markdown files (Obsidian-friendly) + images + full JSON backup, as one .zip ---------- */
 const CRCT=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
 function crc32(u){let c=~0;for(let i=0;i<u.length;i++)c=CRCT[(c^u[i])&255]^(c>>>8);return(~c)>>>0}
@@ -3214,7 +3216,7 @@ async function buildExportFiles(withImages){
   const en=new Map();for(const e of S.events||[])en.set(e.id,uniq("topics",fsafe(e.name||e.text||e.id)));
   const link=(id)=>{if(names.has(id))return"[["+names.get(id).name+"]]";if(en.has(id))return"[["+en.get(id)+"]]";return null};
   const imgPath=new Map();
-  if(withImages){for(const m of S.imgs||[]){try{const r=await fetch(imgSrc(m));if(!r.ok)continue;const buf=new Uint8Array(await r.arrayBuffer());const ext=/png/i.test(r.headers.get("content-type")||"")?"png":"jpg";const p="assets/images/"+m.id+"."+ext;imgPath.set(m.id,p);files.push({name:"Tabula/"+p,data:buf})}catch(e){}}}
+  if(withImages){for(const m of S.imgs||[]){try{const r=await fetch(imgSrc(m));if(!r.ok)continue;const buf=new Uint8Array(await r.arrayBuffer());const ext=/png/i.test(r.headers.get("content-type")||"")?"png":"jpg";const p="assets/images/"+m.id+"."+ext;imgPath.set(m.id,p);files.push({name:BR().name+"/"+p,data:buf})}catch(e){}}}
   const imgsOf=it=>(S.imgs||[]).filter(m=>m.parent===it.id||(m.links||[]).includes(it.id));
   for(const it of items){
     const {dir,name}=names.get(it.id),src=it.src||{};
@@ -3226,22 +3228,22 @@ async function buildExportFiles(withImages){
     if(it.summary)body+="\n## Summary\n\n"+it.summary+"\n";
     const ims=imgsOf(it);if(ims.length)body+="\n## Images\n\n"+ims.map(m=>(imgPath.has(m.id)?"![["+imgPath.get(m.id).split("/").pop()+"]]":"- image "+m.id+" (not exported)")+(m.desc?"\n"+m.desc:"")).join("\n\n")+"\n";
     if(it.transcript)body+="\n## Transcript\n\n```text\n"+String(it.transcript).replace(/```/g,"'''")+"\n```\n";
-    files.push({name:"Tabula/"+dir+"/"+name+".md",data:fm+body})}
+    files.push({name:BR().name+"/"+dir+"/"+name+".md",data:fm+body})}
   const byDay=new Map();for(const it of items){if(!it.date)continue;if(!byDay.has(it.date))byDay.set(it.date,[]);byDay.get(it.date).push(it)}
   for(const[d,arr]of byDay){
     const sec=(k,label)=>{const a=arr.filter(i=>i.kind===k);if(!a.length)return"";return"## "+label+"\n\n"+a.map(i=>(k==="task"?"- ["+(i.status==="done"?"x":i.status==="dropped"?"-":" ")+"] ":"- ")+(cleanTitle(i).time&&k==="event"?cleanTitle(i).time+" ":"")+"[["+names.get(i.id).name+"]]").join("\n")+"\n\n"};
-    files.push({name:"Tabula/journal/"+d.slice(0,4)+"/"+d.slice(5,7)+"/"+d+".md",data:frontmatter({date:d,tabula:"day"})+"# "+d+"\n\n"+sec("event","Events")+sec("task","Tasks")+sec("note","Notes")})}
+    files.push({name:BR().name+"/journal/"+d.slice(0,4)+"/"+d.slice(5,7)+"/"+d+".md",data:frontmatter({date:d,tabula:"day"})+"# "+d+"\n\n"+sec("event","Events")+sec("task","Tasks")+sec("note","Notes")})}
   const backlinks=(field,id)=>items.filter(i=>(i[field]||[]).includes(id)).sort((a,b)=>(b.date||"").localeCompare(a.date||"")).map(i=>"- "+(i.date||"")+" [["+names.get(i.id).name+"]]").join("\n");
-  for(const p of S.people.concat(S.arch_people||[]))files.push({name:"Tabula/people/"+pn.get(p.id)+".md",data:frontmatter({id:p.id,name:p.name,aliases:p.akas,relationship:p.rel,context:p.context,area:p.area,email:p.email,phone:p.phone,company:p.company,role:p.role,self:p.isSelf||undefined,archived:p.archivedAt?true:undefined,tabula:"person"})+"# "+p.name+"\n\n"+(p.note||"")+"\n\n## Appears in\n\n"+backlinks("people",p.id)+"\n"});
-  for(const c of S.colls.concat(S.arch_colls||[]))files.push({name:"Tabula/collections/"+cn.get(c.id)+".md",data:frontmatter({id:c.id,name:c.name,definition:c.definition,tabula:"collection"})+"# "+c.name+"\n\n"+(c.note||"")+"\n\n## Items\n\n"+backlinks("colls",c.id)+"\n"});
-  for(const e of S.events||[])files.push({name:"Tabula/topics/"+en.get(e.id)+".md",data:frontmatter({id:e.id,name:e.name||e.text,tabula:"event-topic"})+"# "+(e.name||e.text||e.id)+"\n\n"+(e.note||"")+"\n\n## Items\n\n"+backlinks("events",e.id)+"\n"});
-  for(const k of S.caps||[])files.push({name:"Tabula/captures/"+new Date(k.at||Date.now()).toISOString().slice(0,10)+" "+fsafe((k.src&&k.src.name)||k.type)+" "+k.id+".md",data:frontmatter({id:k.id,type:k.type,day:k.day,source:k.src&&k.src.name,source_location:k.src&&k.src.loc,source_link:k.src&&k.src.link,captured:new Date(k.at||0).toISOString(),tabula:"capture"})+k.text+"\n"});
-  files.push({name:"Tabula/data/tabula-backup.json",data:JSON.stringify(backupBundle(),null,1)});
-  files.push({name:"Tabula/README.md",data:`# Tabula export\n\nExported ${new Date().toISOString()}.\n\nOpen this folder as an Obsidian vault, or read it in any text editor. Every record is a Markdown file with YAML frontmatter; links use [[wiki links]].\n\n- journal/YYYY/MM/YYYY-MM-DD.md: one file per day, linking that day's events, tasks and notes\n- tasks/, events/, notes/: one file per item (frontmatter holds id, dates, status, sphere, people, source)\n- people/, collections/, topics/: one file per person, collection and event topic, with backlinks\n- captures/: imported text kept verbatim, the source of what was split out\n- assets/images/: the images attached to items\n- data/tabula-backup.json: the complete data, for restoring into Tabula (Data page, Import)\n`});
+  for(const p of S.people.concat(S.arch_people||[]))files.push({name:BR().name+"/people/"+pn.get(p.id)+".md",data:frontmatter({id:p.id,name:p.name,aliases:p.akas,relationship:p.rel,context:p.context,area:p.area,email:p.email,phone:p.phone,company:p.company,role:p.role,self:p.isSelf||undefined,archived:p.archivedAt?true:undefined,tabula:"person"})+"# "+p.name+"\n\n"+(p.note||"")+"\n\n## Appears in\n\n"+backlinks("people",p.id)+"\n"});
+  for(const c of S.colls.concat(S.arch_colls||[]))files.push({name:BR().name+"/collections/"+cn.get(c.id)+".md",data:frontmatter({id:c.id,name:c.name,definition:c.definition,tabula:"collection"})+"# "+c.name+"\n\n"+(c.note||"")+"\n\n## Items\n\n"+backlinks("colls",c.id)+"\n"});
+  for(const e of S.events||[])files.push({name:BR().name+"/topics/"+en.get(e.id)+".md",data:frontmatter({id:e.id,name:e.name||e.text,tabula:"event-topic"})+"# "+(e.name||e.text||e.id)+"\n\n"+(e.note||"")+"\n\n## Items\n\n"+backlinks("events",e.id)+"\n"});
+  for(const k of S.caps||[])files.push({name:BR().name+"/captures/"+new Date(k.at||Date.now()).toISOString().slice(0,10)+" "+fsafe((k.src&&k.src.name)||k.type)+" "+k.id+".md",data:frontmatter({id:k.id,type:k.type,day:k.day,source:k.src&&k.src.name,source_location:k.src&&k.src.loc,source_link:k.src&&k.src.link,captured:new Date(k.at||0).toISOString(),tabula:"capture"})+k.text+"\n"});
+  files.push({name:BR().name+"/data/"+BR().slug+"-backup.json",data:JSON.stringify(backupBundle(),null,1)});
+  files.push({name:BR().name+"/README.md",data:`# ${BR().name} export\n\nExported ${new Date().toISOString()}.\n\nOpen this folder as an Obsidian vault, or read it in any text editor. Every record is a Markdown file with YAML frontmatter; links use [[wiki links]].\n\n- journal/YYYY/MM/YYYY-MM-DD.md: one file per day, linking that day's events, tasks and notes\n- tasks/, events/, notes/: one file per item (frontmatter holds id, dates, status, sphere, people, source)\n- people/, collections/, topics/: one file per person, collection and event topic, with backlinks\n- captures/: imported text kept verbatim, the source of what was split out\n- assets/images/: the images attached to items\n- data/${BR().slug}-backup.json: the complete data, for restoring into ${BR().name} (Data page, Import)\n`});
   return files}
 async function exportZip(withImages){
   if(S.busy)return;S.busy="Building the export…";render();
-  try{const files=await buildExportFiles(withImages);const blob=makeZip(files);S.busy="";render();await saveFile("tabula-"+today()+".zip",blob);
+  try{const files=await buildExportFiles(withImages);const blob=makeZip(files);S.busy="";render();await saveFile(BR().slug+"-"+today()+".zip",blob);
     try{localStorage.setItem("tabula_lastexport",String(Date.now()))}catch(e){}}
   catch(e){S.busy="";render();toast("Export failed: "+(e.message||e))}}
 
@@ -3283,7 +3285,7 @@ async function snapshot(){
   try{
     const sv=await evServer();const desc=await S.mcp.describeTool(sv,"create_note").catch(()=>null);
     const props=(desc&&desc.inputSchema&&desc.inputSchema.properties)||{title:1,content:1};
-    const input={};if(props.title)input.title="Snapshot "+ym+" (from Tabula)";
+    const input={};if(props.title)input.title="Snapshot "+ym+" (from "+BR().name+")";
     for(const k of["content","body","text","html"])if(props[k]){input[k]=html;break}
     await S.mcp.callTool(sv,"create_note",input);toast("Snapshot note created in Evernote");
   }catch(e){toast("Snapshot failed: "+(e.code||e.message))}

@@ -1,5 +1,5 @@
-/* Import a "Download all" zip from the original Tabula: restores every record from
-   data/tabula-backup.json and uploads the images in assets/images/ to Supabase Storage. */
+/* Import a "Download all" zip from the original Tabula or from this app: restores every record from
+   data/second-thoughts-backup.json (or the older data/tabula-backup.json) and uploads the images in assets/images/ to Supabase Storage. */
 import { supabase } from "./supabase";
 
 type Entry = { name: string; method: number; csize: number; offset: number };
@@ -46,8 +46,8 @@ export async function importZip(file: File) {
     say("Reading the zip…");
     const buf = new DataView(await file.arrayBuffer());
     const entries = readEntries(buf);
-    const bk = entries.find((e) => /(^|\/)data\/tabula-backup\.json$/.test(e.name));
-    if (!bk) throw new Error("No data/tabula-backup.json in this zip");
+    const bk = entries.find((e) => /(^|\/)data\/(second-thoughts|tabula)-backup\.json$/.test(e.name));
+    if (!bk) throw new Error("No data/second-thoughts-backup.json in this zip");
     const bundle = JSON.parse(new TextDecoder().decode(await readFile(buf, bk)));
     const files = new Map(entries.filter((e) => /assets\/images\//.test(e.name)).map((e) => [e.name.split("/").pop()!.replace(/\.\w+$/, ""), e]));
     const { data: u } = await supabase.auth.getUser();

@@ -1,4 +1,4 @@
-# Tabula
+# Second Thoughts
 
 Personal planner and journal (GTD + bullet journal + commonplace book). Vite + TypeScript shell in `src/`,
 the original app in `public/legacy/app.js`, Supabase for data. See `README.md` for setup.
